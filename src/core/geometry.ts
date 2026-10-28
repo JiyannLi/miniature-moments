@@ -323,7 +323,13 @@ export function glowPatch(
   g.add(mesh);
   return mesh;
 }
-export function base(g: T.Object3D, color = "#303e4b") {
-  box(g, 14, 0.85, 12, 0, -0.53, 0, mat(color));
-  box(g, 14.12, 0.12, 12.12, 0, -0.12, 0, mat("#71838b"));
+export function base(
+  g: T.Object3D,
+  color = "#303e4b",
+  width = 14,
+  depth = 12,
+  centerX = 0,
+) {
+  box(g, width, 0.85, depth, centerX, -0.53, 0, mat(color));
+  box(g, width + 0.12, 0.12, depth + 0.12, centerX, -0.12, 0, mat("#71838b"));
 }

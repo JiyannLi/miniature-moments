@@ -1,3 +1,4 @@
+import type { WeatherCondition } from "../ocean/OceanController";
 export class UI {
   readonly host: HTMLElement;
   private toast: HTMLElement;
@@ -12,8 +13,8 @@ export class UI {
       <nav class="scene-selector floating" aria-label="选择场景"><button class="scene-card active" data-scene="0" aria-pressed="true"><span class="scene-number">01</span><span><strong>Rainy Konbini</strong><small>雨夜便利店</small></span></button><button class="scene-card" data-scene="1" aria-pressed="false"><span class="scene-number">02</span><span><strong>Coastal Tram</strong><small>海岸电车</small></span></button></nav>
       <div class="location floating"><span id="location-title">雨の街角</span><small id="location-sub">A LITTLE LIGHT IN THE NIGHT</small></div>
       <div class="hint floating" id="hint">拖动探索 · 滚轮缩放 · 点击发光物件</div>
-      <footer class="floating"><div class="toolbar"><div class="weather"><span class="tool-label">雨量</span><div class="segmented" role="group" aria-label="降雨强度"><button data-rain="0" aria-pressed="false">小雨</button><button data-rain="1" class="selected" aria-pressed="true">中雨</button><button data-rain="2" aria-pressed="false">大雨</button></div></div><span class="divider"></span><button id="time" class="tool-button" aria-label="切换昼夜">☾ <span>夜晚</span></button><span class="divider"></span><button id="reset" class="tool-button" aria-label="重置视角">⟲ <span>重置视角</span></button></div></footer>
-      <div class="toast" role="status" aria-live="polite"></div><dialog><button class="close" aria-label="关闭说明">×</button><span class="eyebrow">FIELD NOTES / 操作手记</span><h2>每个角落，都有小小的故事。</h2><p>鼠标或单指拖动旋转，滚轮或双指缩放。点击画面里的物件，看看会发生什么。</p><p><b>雨夜便利店</b><br>点招牌开关店内灯光；点玻璃门开关店门；点路灯切换照明。售货机后还藏着一只小猫。</p><p><b>海岸电车</b><br>点道口信号，观看警示、落杆、电车通行和抬杆。点击车厢切换灯光。通行过程中会锁定新的通行请求。</p><p class="muted">按 R 重置视角 · 1 / 2 切换场景 · Esc 关闭手记<br>全屏沙盘 · 静态樱花 · 没有自动运镜</p></dialog>`;
+      <footer class="floating"><div class="toolbar"><div class="weather"><select id="weather-condition" aria-label="天气类型"><option value="sunny">晴天</option><option value="cloudy">阴天</option><option value="rain" selected>雨天</option></select><span class="tool-label">雨量</span><div class="segmented" role="group" aria-label="降雨强度"><button data-rain="0" aria-pressed="false">小雨</button><button data-rain="1" class="selected" aria-pressed="true">中雨</button><button data-rain="2" aria-pressed="false">大雨</button></div></div><span class="divider"></span><button id="time" class="tool-button" aria-label="切换昼夜">☾ <span>夜晚</span></button><span class="divider"></span><button id="reset" class="tool-button" aria-label="重置视角">⟲ <span>重置视角</span></button><span class="divider ocean-divider" hidden></span><button id="ocean-toggle" class="tool-button" aria-controls="ocean-panel" aria-expanded="false" hidden>≈ <span>海洋</span></button></div></footer>
+      <div class="toast" role="status" aria-live="polite"></div><dialog><button class="close" aria-label="关闭说明">×</button><span class="eyebrow">FIELD NOTES / 操作手记</span><h2>每个角落，都有小小的故事。</h2><p>鼠标或单指拖动旋转，滚轮或双指缩放。点击画面里的物件，看看会发生什么。</p><p><b>雨夜便利店</b><br>点招牌开关店内灯光；点玻璃门开关店门；点路灯切换照明。售货机后还藏着一只小猫。</p><p><b>海岸电车</b><br>点道口信号，观看警示、落杆、电车通行和抬杆。点击车厢切换灯光。通行过程中会锁定新的通行请求。</p><p class="muted">按 R 重置视角 · 1 / 2 切换场景 · Esc 关闭手记<br>海洋面板支持预设与手动参数 · 没有自动运镜</p></dialog>`;
     const wake = () => {
       document.body.classList.remove("ui-idle");
       clearTimeout(this.idleTimer);
@@ -67,6 +68,7 @@ export class UI {
     rain: (n: number) => void,
     time: () => void,
     reset: () => void,
+    condition: (value: WeatherCondition) => void = () => {},
   ) {
     document
       .querySelectorAll<HTMLButtonElement>("button[data-scene]")
@@ -81,10 +83,20 @@ export class UI {
           });
         }),
     );
+    document
+      .querySelector("#weather-condition")!
+      .addEventListener("change", (e) =>
+        condition((e.target as HTMLSelectElement).value as WeatherCondition),
+      );
     document.querySelector("#time")!.addEventListener("click", time);
     document.querySelector("#reset")!.addEventListener("click", reset);
     window.addEventListener("keydown", (e) => {
-      if (document.querySelector("dialog")!.open) return;
+      if (
+        document.querySelector("dialog")!.open ||
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLSelectElement
+      )
+        return;
       if (e.key.toLowerCase() === "r") reset();
       if (e.key === "1" || e.key === "2") change(Number(e.key) - 1);
     });
@@ -110,7 +122,15 @@ export class UI {
     document.querySelector("#scene-description")!.textContent = n
       ? "海岸电车 · 沿着暮色，去看一片海。"
       : "雨夜便利店 · 一盏灯，等一场雨停。";
+    (document.querySelector("#ocean-toggle") as HTMLElement).hidden = n === 0;
+    (document.querySelector(".ocean-divider") as HTMLElement).hidden = n === 0;
+    window.dispatchEvent(new CustomEvent("miniature-scene", { detail: n }));
     document.body.dataset.world = String(n);
+  }
+  weather(value: WeatherCondition) {
+    (document.querySelector("#weather-condition") as HTMLSelectElement).value =
+      value;
+    document.body.dataset.weather = value;
   }
   time(night: boolean, coast: boolean) {
     document.querySelector("#time")!.innerHTML =

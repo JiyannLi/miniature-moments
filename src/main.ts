@@ -1,5 +1,7 @@
 import "./style.css";
 import * as T from "three";
+import { OceanPanel } from "./ui/OceanPanel";
+import type { WeatherCondition } from "./ocean/OceanController";
 import { UI } from "./ui/UI";
 import { Renderer } from "./core/Renderer";
 import { CameraController } from "./core/CameraController";
@@ -17,6 +19,13 @@ try {
     manager = new SceneManager(scene, ui.notify),
     interaction = new InteractionManager(view.canvas, camera.camera, ui.hint);
   scene.add(weather.root);
+  new OceanPanel(manager.ocean);
+  function setCondition(c: WeatherCondition) {
+    weather.setCondition(c);
+    manager.ocean.setWeather(c, weather.level);
+    environment.condition = c;
+    ui.weather(c);
+  }
   function resize() {
     view.resize();
     camera.resize(ui.host.clientWidth, ui.host.clientHeight);
@@ -29,19 +38,25 @@ try {
     environment.configure(n === 1);
     interaction.targets = manager.world.targets;
     camera.fit(manager.world.root, n === 1);
+    environment.frame(manager.world.root);
     scene.updateMatrixWorld(true);
     ui.scene(n);
     ui.time(environment.target === 1, n === 1);
   }
   ui.bind(
     change,
-    (n) => weather.setLevel(n),
+    (n) => {
+      weather.setLevel(n);
+      setCondition("rain");
+    },
     () => {
       environment.target = 1 - environment.target;
       ui.time(environment.target === 1, manager.index === 1);
     },
     () => camera.reset(),
+    setCondition,
   );
+  let renderedRevision = -1;
   change(0);
   let last = performance.now(),
     time = 0;
@@ -56,10 +71,12 @@ try {
     document.body.style.background = (scene.background as T.Color).getStyle();
     manager.world.setNight(environment.night);
     manager.world.update(dt, reduced ? 0 : time);
-    weather.root.visible = !reduced;
+    interaction.update();
+    weather.root.visible = !reduced && weather.condition === "rain";
     if (!reduced) weather.update(dt, time, manager.index === 1);
     view.adapt(dt);
     view.renderer.render(scene, camera.camera);
+    renderedRevision = manager.revision;
   });
   view.canvas.addEventListener("webglcontextlost", (e) => {
     e.preventDefault();
@@ -70,6 +87,8 @@ try {
   Object.assign(window, {
     __rainyDebug: () => ({
       scene: manager.index,
+      revision: manager.revision,
+      renderedRevision,
       targets: manager.world.targets.map((t) => ({
         name: t.name,
         position: new T.Box3()
@@ -91,6 +110,8 @@ try {
       },
       night: environment.target,
       rain: weather.level,
+      weather: weather.condition,
+      ocean: manager.ocean.snapshot(),
       zoom: camera.camera.zoom,
       framing: camera.frameInfo(),
       pixelRatio: view.renderer.getPixelRatio(),

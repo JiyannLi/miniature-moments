@@ -18,7 +18,7 @@ npm run dev -- --port 5173
 ```bash
 npm run build     # TypeScript 检查 + Vite 生产构建，输出 dist/
 npm run preview   # 本地检查生产构建
-npm test          # 道口状态机单元测试
+npm test          # 道口、几何、道具与海洋参数安全测试
 npm run test:browser  # Chromium 浏览器交互与资源生命周期测试
 npm run format    # 格式化源码
 ```
@@ -41,9 +41,11 @@ npm run format    # 格式化源码
 
 **海岸电车：** 点道口信号启动完整演示。状态依次为 `idle → warning → lowering → passing → raising → idle`；忙碌时拒绝新的请求。警灯交替闪烁，栏杆落下后电车才通过，电车完整离开道路后抬杆，并停在另一侧；下一次演示沿相反方向行驶。点车厢切换车灯和窗边乘客效果。中央坡道连接横向铁路与海岸，住宅、石墙、樱花位于两侧，后方是有厚度的微缩海面；黄昏通过光色表现，不设置太阳圆盘。
 
-按最新要求，樱花树保持静态，不包含飘落花瓣动画。
+不包含飘落花瓣动画；4.0 中树木仅有极轻微、不同频率的整体偏航，枝干连接保持完整。
 
 两个场景均有小雨 / 中雨 / 大雨。雨量影响雨线数量、透明度、速度和地面涟漪数量。便利店支持白天 / 夜晚；海岸支持黄昏 / 夜晚，光照平滑过渡。
+
+4.0 增加晴天 / 阴天 / 雨天天气选择；点击雨量按钮会恢复雨天。Coastal Tram 底部的“海洋”按钮展开八参数面板，默认 **Auto / Breeze**。三个预设 Calm / Breeze / Windy 平滑切换；拖动任意滑块进入 Manual，天气不会覆盖手动值，返回 Auto 后平滑恢复天气联动。海洋设置在本次页面会话的场景切换间保留，刷新后恢复默认。
 
 ## 结构
 
@@ -65,9 +67,11 @@ src/
     Storefront.ts            共用尺寸的门框、固定窗和门扇
     CrossingArm.ts           两侧独立的栏杆枢轴
     SceneB.ts                海岸几何、电车与波浪
-  water/                     波场、分层透明水体、海床与岩石
+  ocean/                     海况控制器、安全范围、CPU/GPU 共用 Gerstner 模型
+  water/                     分层透明水体、海床与岩石
+  props/                     程序化生活道具、按材质合批、场景布置
   lab/water-lab.ts            两种水体方案的隔离原型
-  ui/UI.ts                   界面和操作说明
+  ui/                        主界面、操作说明、折叠 OceanPanel
   style.css                  响应式布局
 ```
 
@@ -82,6 +86,8 @@ src/
 - 所有字体、招牌与模型在本地生成；无需 API、凭据、数据库或联网素材。
 
 ## 图片与验证说明
+
+最新截图、动态海浪录像、参数和验收结果见 [4.0 交付报告](docs/v4/REPORT.md)，参考访问与许可证核查见 [4.0 调研](docs/v4/RESEARCH.md)。
 
 `docs/round2/konbini-wide.png`、`docs/round2/coast-wide.png`、`docs/round2/coast-phone.png` 是实际浏览器生成的 WebGL 截图。参考图片中的构图被压缩为完整沙盘；画风为简化 Low-poly，未追求照片级复原。
 
@@ -120,3 +126,19 @@ npm run test:browser -- tests/browser/round3.spec.ts tests/browser/worlds.spec.t
 ```
 
 录屏为可选测试输出；如需重新录制，可先准备 Playwright FFmpeg，再设置 `RECORD_WATER_VIDEO=1` 运行本轮水体用例。正常浏览器测试无需视频编码器。
+
+## 4.0：Quiet Living Diorama
+
+便利店向侧面扩建约 23%，增加有街道入口的单车/汽车停放空间、促销牌、透明雨伞、玻璃贴纸和服务设施；海岸总面积增加 25%，主要扩展海域，补充住宅盆栽、信箱、门牌、自行车和海边长椅。原有主体、道口、门和相机操作继续保留。
+
+海面采用三组 Gerstner 波，具有连续水平/垂直位移、岸线衰减、共享位移的侧壁、可见海床、Fresnel 和吸收近似。八个参数都有安全范围；雨量调节细涟漪，风浪由预设决定，夜晚改变光色。没有真实建筑反射、FFT 或高成本海洋引擎。
+
+```bash
+npm test
+npm run build
+npm run test:browser
+# 可选录制：安装 Playwright FFmpeg 后
+RECORD_OCEAN_VIDEO=1 npm run test:browser -- tests/browser/v4.spec.ts --grep Gerstner
+```
+
+原 GitHub Pages 工作流继续负责发布。测试截图和视频仅作为仓库文档，不打包到网页运行资源中。

@@ -1,7 +1,7 @@
 import * as T from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { waveGLSL } from "../water/wave";
-import { CoastalWater } from "../water/CoastalWater";
+import { gerstnerGLSL, oceanUniformGLSL } from "../ocean/Gerstner";
+import { OceanWater } from "../water/OceanWater";
 import { disposeTree } from "../core/SceneManager";
 const renderer = new T.WebGLRenderer({ antialias: true });
 renderer.setSize(innerWidth, innerHeight);
@@ -19,7 +19,7 @@ camera.position.set(10, 5, 10);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, -0.2, -4.2);
 controls.update();
-const water = new CoastalWater();
+const water = new OceanWater({ depth: 6.6, centerZ: -5.7 });
 scene.add(water.root);
 // Comparison A: a physical water material with a locally generated scrolling normal map.
 const data = new Uint8Array(64 * 64 * 4);
@@ -46,12 +46,12 @@ const physical = new T.MeshPhysicalMaterial({
   depthWrite: false,
 });
 physical.onBeforeCompile = (compiled) => {
-  compiled.uniforms.uTime = water.uniforms.uTime;
+  Object.assign(compiled.uniforms, water.uniforms);
   compiled.vertexShader =
-    "uniform float uTime;\n" + waveGLSL + "\n" + compiled.vertexShader;
+    oceanUniformGLSL + "\n" + gerstnerGLSL + "\n" + compiled.vertexShader;
   compiled.vertexShader = compiled.vertexShader.replace(
     "#include <begin_vertex>",
-    "#include <begin_vertex>\ntransformed.y+=wave(transformed.xz,uTime);",
+    "#include <begin_vertex>\ntransformed+=gerstnerDisplacement(transformed.xz);",
   );
 };
 const shader = water.surface.material;

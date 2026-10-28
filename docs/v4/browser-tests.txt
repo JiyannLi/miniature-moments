@@ -1,0 +1,43 @@
+
+> rainy-miniature-worlds@1.0.0 test:browser
+> playwright test
+
+
+Running 10 tests using 1 worker
+
+(node:10491) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"device":"wide","scene":0,"projectedWidth":0.72,"pixelRatio":1}
+{"device":"wide","scene":1,"projectedWidth":0.72,"pixelRatio":1}
+{"device":"laptop","scene":0,"projectedWidth":0.718466983493101,"pixelRatio":1}
+{"device":"laptop","scene":1,"projectedWidth":0.6804526517467377,"pixelRatio":1}
+{"device":"ipad-landscape","scene":0,"projectedWidth":0.7199999999999999,"pixelRatio":1}
+{"device":"ipad-landscape","scene":1,"projectedWidth":0.6662229502828778,"pixelRatio":1}
+{"device":"ipad-portrait","scene":0,"projectedWidth":0.8999999999999999,"pixelRatio":1}
+{"device":"ipad-portrait","scene":1,"projectedWidth":0.9000000000000004,"pixelRatio":1}
+{"device":"phone","scene":0,"projectedWidth":0.8999999999999997,"pixelRatio":1}
+{"device":"phone","scene":1,"projectedWidth":0.9,"pixelRatio":1}
+  ✓   1 tests/browser/round2.spec.ts:10:1 › 全视口、响应式初始取景、UI事件隔离和空闲淡化 (1.1m)
+  ✓   2 tests/browser/round2.spec.ts:80:1 › 海床与水体侧壁可观察，水面时间持续更新且不新增着色器异常 (31.7s)
+  ✓   3 tests/browser/round2.spec.ts:127:1 › 隔离水体原型两种材质均可运行并响应昼夜 (3.6s)
+{"dynamicWater":{"level":0.12,"bottom":-0.78,"time":17.753825999999783,"phase":14.10672,"dimensions":{"width":14,"depth":6.6,"centerZ":-5.7},"ocean":{"mode":"auto","preset":"breeze","weather":"rain","rain":0,"target":{"waveHeight":0.067,"waveSpeed":0.8,"waveLength":1.12,"choppiness":0.32,"rippleStrength":0.42,"transparency":0.5449999999999999,"glassiness":0.56,"reflection":0.328},"current":{"waveHeight":0.067,"waveSpeed":0.8,"waveLength":1.12,"choppiness":0.32,"rippleStrength":0.42000000000000004,"transparency":0.545,"glassiness":0.56,"reflection":0.32800000000000007}},"night":0.9999996137573354,"rocks":8,"maxWaveHeight":0.12,"openShore":true},"renderer":{"memory":{"geometries":256,"textures":10},"render":{"frame":203,"calls":259,"triangles":16360,"points":0,"lines":447}},"errors":[]}
+  ✓   4 tests/browser/round3.spec.ts:15:1 › 修复后海水：静止、慢转、快转、拉近拉远，黄昏与夜晚动态录屏 (36.3s)
+  ✓   5 tests/browser/round3.spec.ts:88:1 › 修改范围内的几何从多方向可见，移动端保持取景和场景切换 (31.9s)
+  ✓   6 tests/browser/v4.spec.ts:19:1 › Ocean Controls 八参数、预设、模式、天气与切换持久性 (23.5s)
+  ✓   7 tests/browser/v4.spec.ts:88:1 › 扩建、道具接地、桌面/iPad/手机面板和 reduced-motion (34.7s)
+{"oceanExtremes":{"mode":"manual","preset":"windy","weather":"rain","rain":1,"target":{"waveHeight":0.12,"waveSpeed":1.2,"waveLength":0.65,"choppiness":0.65,"rippleStrength":0.73,"transparency":0.42500000000000004,"glassiness":0.4,"reflection":0.39359999999999995},"current":{"waveHeight":0.11999999999999998,"waveSpeed":1.1999999999999997,"waveLength":0.6500000000000001,"choppiness":0.6499999999999999,"rippleStrength":0.7299999999999999,"transparency":0.4250000000000001,"glassiness":0.4000000000000001,"reflection":0.3935999999999999}},"renderer":{"memory":{"geometries":256,"textures":10},"render":{"frame":151,"calls":259,"triangles":17960,"points":0,"lines":897}},"errors":[]}
+  ✓   8 tests/browser/v4.spec.ts:154:1 › Gerstner 极值、慢转快转、远近、晴雨夜切换和状态连续 (25.3s)
+{
+  memoryBefore: { geometries: 256, textures: 10 },
+  memoryAfter: { geometries: 256, textures: 10 },
+  drawCalls: 259
+}
+  ✓   9 tests/browser/worlds.spec.ts:18:1 › 双场景、实体交互、相机、天气、道口和资源生命周期 (56.8s)
+  ✓  10 tests/browser/worlds.spec.ts:127:1 › 移动端触摸点击、单指旋转、双指缩放及界面 (6.3s)
+
+  10 passed (5.3m)
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

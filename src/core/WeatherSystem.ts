@@ -1,8 +1,14 @@
 import * as T from "three";
+import type { WeatherCondition } from "../ocean/OceanController";
 import { coastRoadHeight } from "../scenes/CoastalGround";
 export class WeatherSystem {
   root = new T.Group();
   level = 1;
+  condition: WeatherCondition = "rain";
+  setCondition(condition: WeatherCondition) {
+    this.condition = condition;
+    this.root.visible = condition === "rain";
+  }
   private count = 1500;
   private positions = new Float32Array(this.count * 6);
   private rain: T.LineSegments;

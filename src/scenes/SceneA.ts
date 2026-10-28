@@ -1,4 +1,6 @@
 import * as T from "three";
+import { softLight } from "../core/SoftLight";
+import { konbiniDressing, livingMotion } from "../props/SceneDressing";
 import { roadsideFence } from "../core/structures";
 import { createStorefront, storefront } from "./Storefront";
 import {
@@ -18,24 +20,34 @@ import type { World, Target } from "../core/types";
 export function createKonbini(notify: (s: string) => void): World {
   const root = new T.Group(),
     targets: Target[] = [];
-  base(root, "#263645");
+  base(root, "#263645", 17.2, 12, 1.6);
   const concrete = mat("#697381"),
     dark = mat("#273344"),
     road = mat("#34465b", 0.18),
     steel = mat("#384355");
-  box(root, 14, 0.12, 12, 0, -0.02, 0, road);
-  box(root, 14, 0.22, 5.4, 0, 0.13, -2.9, concrete);
+  box(root, 17.2, 0.12, 12, 1.6, -0.02, 0, road);
+  box(root, 17.2, 0.22, 5.4, 1.6, 0.13, -2.9, concrete);
   box(root, 14, 0.13, 0.2, 0, 0.08, -0.08, mat("#b3bcc0"));
   // Pavement joints and paint are geometry, not a reference-image plane.
-  for (let x = -6.8; x < 7; x += 0.8)
+  for (let x = -6.8; x < 10.1; x += 0.8)
     for (let z = -1.2; z > -5.7; z -= 0.8) {
       box(root, 0.012, 0.009, 0.77, x, 0.246, z, dark);
-      box(root, 0.78, 0.009, 0.012, x + 0.39, 0.246, z - 0.39, dark);
+      const cellWidth = Math.min(0.78, 10.2 - x);
+      box(
+        root,
+        cellWidth,
+        0.009,
+        0.012,
+        x + cellWidth / 2,
+        0.246,
+        z - 0.39,
+        dark,
+      );
     }
   const paint = mat("#b8c2c8", 0.4);
   for (let i = 0; i < 6; i++)
     box(root, 0.5, 0.012, 1.9, 0.1 + i * 0.85, 0.055, 2.8, paint);
-  for (let x = -6; x < 7; x += 2.4)
+  for (let x = -6; x < 10.1; x += 2.4)
     box(root, 1.2, 0.012, 0.06, x, 0.055, 4.9, paint);
   // Shop shell: open front, separate side and rear walls, actual furnished interior.
   box(root, 5.6, 2.6, 0.18, 1, 1.55, -4.3, mat("#89939e"));
@@ -76,6 +88,7 @@ export function createKonbini(notify: (s: string) => void): World {
   shopLight.position.set(1, 1.9, -2);
   root.add(shopLight);
   const glow = glowPatch(root, 1.1, 0.5, 3.7, 4.5, "#efbc78");
+  const softShop = softLight(root, 1.1, 2.1, 3.5, 4.3, "#e2b97f");
   let lights = true;
   const sign = label(
     root,
@@ -268,10 +281,14 @@ export function createKonbini(notify: (s: string) => void): World {
     "#263645",
     "#a9beca",
   );
+  const dressing = konbiniDressing();
+  root.add(dressing);
+  const sway = livingMotion(root);
   return {
     root,
     targets,
     inspect: () => ({
+      dressing: dressing.userData.layout,
       doorOpen,
       doorAngle: door.rotation.y,
       lights,
@@ -280,6 +297,7 @@ export function createKonbini(notify: (s: string) => void): World {
       doorBounds: new T.Box3().setFromObject(door).min.toArray(),
     }),
     update(dt, time) {
+      sway(time);
       door.rotation.y = T.MathUtils.damp(
         door.rotation.y,
         doorOpen ? -storefront.maxAngle : 0,
@@ -299,6 +317,8 @@ export function createKonbini(notify: (s: string) => void): World {
         dt,
       );
       glow.visible = lights;
+      softShop.material.uniforms.uAlpha.value =
+        (0.14 * shopLight.intensity) / 18;
       streetLight.intensity = streetOn ? 13 : 0;
       lampM.emissiveIntensity = streetOn ? 1 : 0;
       streetGlow.visible = streetOn;

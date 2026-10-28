@@ -1,4 +1,7 @@
 import * as T from "three";
+import { softLight } from "../core/SoftLight";
+import { OceanController } from "../ocean/OceanController";
+import { coastalDressing, livingMotion } from "../props/SceneDressing";
 import {
   box,
   cylinder,
@@ -23,7 +26,10 @@ import { CoastalWater } from "../water/CoastalWater";
 import { createCrossingArm } from "./CrossingArm";
 import { Crossing } from "../core/Crossing";
 import type { World, Target } from "../core/types";
-export function createCoast(notify: (s: string) => void): World {
+export function createCoast(
+  notify: (s: string) => void,
+  ocean = new OceanController(),
+): World {
   const root = new T.Group(),
     targets: Target[] = [];
   // Land base stops at the seawall: it must not occlude the water cross-section.
@@ -35,7 +41,12 @@ export function createCoast(notify: (s: string) => void): World {
     cream = mat("#ddcdae");
   // Coast is lower than the street. The road slopes continuously to the shore.
   box(root, 14, 0.34, 8.4, 0, 0.08, 1.8, ground);
-  const water = new CoastalWater({ openShore: true });
+  const water = new CoastalWater({
+    openShore: true,
+    depth: 6.6,
+    centerZ: -5.7,
+    controller: ocean,
+  });
   root.add(water.root);
   root.add(coastalRoadbed(ground, asphalt, mat("#9a9ba5")));
   for (const side of [-1, 1])
@@ -278,6 +289,15 @@ export function createCoast(notify: (s: string) => void): World {
     light.position.set(x - side * 0.5, y + 3.3, z);
     root.add(light);
     streetLights.push(light);
+    softLight(
+      root,
+      x - side * 0.5,
+      3.7,
+      0.9,
+      3,
+      "#dfad80",
+      (z) => coastRoadHeight(z) + 0.012,
+    );
     const reflection = glowPatch(
       root,
       x - side * 0.5,
@@ -304,10 +324,14 @@ export function createCoast(notify: (s: string) => void): World {
     "#3e455a",
     "#c1c1d0",
   );
+  const dressing = coastalDressing();
+  root.add(dressing);
+  const sway = livingMotion(root);
   return {
     root,
     targets,
     inspect: () => ({
+      dressing: dressing.userData.layout,
       crossing: crossing.state,
       angle: crossing.angle,
       tramX: crossing.tramX,
@@ -321,6 +345,7 @@ export function createCoast(notify: (s: string) => void): World {
       ),
     }),
     update(dt, time) {
+      sway(time);
       crossing.update(dt);
       tram.position.x = crossing.tramX;
       tram.visible = true;
@@ -347,7 +372,7 @@ export function createCoast(notify: (s: string) => void): World {
         if (lastState === "passing") notify("海岸线电车正在通过。");
         if (lastState === "idle") notify("道口恢复通行。");
       }
-      water.update(time);
+      water.update(time, dt);
     },
     setNight(n) {
       night = n;

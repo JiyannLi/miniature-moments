@@ -2,7 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as T from "three";
 import { CoastalWater } from "../src/water/CoastalWater";
-import { waveHeight, waterLevel, waterBottom } from "../src/water/wave";
+import { waterLevel, waterBottom } from "../src/water/wave";
+import { sampleGerstner } from "../src/ocean/Gerstner";
 import { disposeTree } from "../src/core/SceneManager";
 test("水面与四侧墙在全部边界采样共用水位与波场", () => {
   const w = new CoastalWater();
@@ -21,8 +22,23 @@ test("水面与四侧墙在全部边界采样共用水位与波场", () => {
           assert.ok(
             Math.abs(
               top.getY(j) +
-                waveHeight(top.getX(j), top.getZ(j), t) -
-                (side.getY(i) + waveHeight(side.getX(i), side.getZ(i), t)),
+                sampleGerstner(
+                  top.getX(j),
+                  top.getZ(j),
+                  t,
+                  w.controller.current,
+                  7,
+                  w.dimensions.depth / 2,
+                ).y -
+                (side.getY(i) +
+                  sampleGerstner(
+                    side.getX(i),
+                    side.getZ(i),
+                    t,
+                    w.controller.current,
+                    7,
+                    w.dimensions.depth / 2,
+                  ).y),
             ) < 1e-6,
           );
         break;
@@ -42,7 +58,8 @@ test("水面与侧壁不写透明深度；昼夜和时间驱动同一组 uniform
   w.setNight(0.75);
   assert.equal(s.uniforms.uNight.value, 0.75);
   assert.equal(side.uniforms.uNight.value, 0.75);
-  assert.equal(side.uniforms.uTime.value, 8);
+  assert.equal(side.uniforms.uTime.value, w.uniforms.uTime.value);
+  assert.ok(side.uniforms.uTime.value > 0 && side.uniforms.uTime.value < 1);
   assert.equal(w.inspect().rocks, 8);
   disposeTree(w.root);
 });
@@ -103,5 +120,20 @@ test("少量不规则岩石贴海床，而非悬浮", () => {
       `rock clearance ${clearance}`,
     );
   }
+  disposeTree(w.root);
+});
+
+test("扩建海域仍在原岸线封边，无岸侧共面透明面", () => {
+  const w = new CoastalWater({ depth: 6.6, centerZ: -5.7, openShore: true });
+  assert.ok(
+    Math.abs(w.dimensions.centerZ + w.dimensions.depth / 2 + 2.4) < 1e-8,
+  );
+  const p = w.sides.geometry.attributes.position,
+    index = w.sides.geometry.index!;
+  for (let i = 0; i < index.count; i += 3)
+    assert.equal(
+      [0, 1, 2].every((k) => Math.abs(p.getZ(index.getX(i + k)) - 3.3) < 1e-6),
+      false,
+    );
   disposeTree(w.root);
 });

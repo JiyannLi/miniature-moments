@@ -82,14 +82,41 @@ test("双场景、实体交互、相机、天气、道口和资源生命周期",
     .toBeGreaterThan(0.94);
   await page.screenshot({ path: "docs/round2/coast-night.png" });
   const memory = (await debug(page)).renderer.memory;
+  await page.evaluate(() => {
+    (window as any).__contextLost = 0;
+    document
+      .querySelector("canvas")!
+      .addEventListener("webglcontextlost", () => {
+        (window as any).__contextLost++;
+      });
+  });
   for (let i = 0; i < 5; i++) {
     await page.locator('[data-scene="0"]').click();
     await page.locator('[data-scene="1"]').click();
   }
-  await page.waitForTimeout(1000);
+  await expect
+    .poll(
+      async () => {
+        const d = await debug(page);
+        return (
+          d.renderedRevision === d.revision &&
+          d.renderer.memory.geometries > 100
+        );
+      },
+      { timeout: 15000 },
+    )
+    .toBe(true);
+  const frame = (await debug(page)).renderer.render.frame;
+  await expect
+    .poll(async () => (await debug(page)).renderer.render.frame, {
+      timeout: 10000,
+    })
+    .toBeGreaterThan(frame + 1);
+  expect(await page.evaluate(() => (window as any).__contextLost)).toBe(0);
   const after = (await debug(page)).renderer.memory;
   expect(after.geometries).toBeLessThanOrEqual(memory.geometries + 2);
-  expect(after.textures).toBeLessThanOrEqual(memory.textures);
+  expect(after.geometries).toBeGreaterThanOrEqual(memory.geometries - 2);
+  expect(after.textures).toBe(memory.textures);
   expect(errors).toEqual([]);
   console.log({
     memoryBefore: memory,

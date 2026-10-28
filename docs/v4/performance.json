@@ -1,0 +1,62 @@
+[
+  {
+    "stage": "baseline",
+    "scene": 0,
+    "render": {
+      "frame": 8,
+      "calls": 160,
+      "triangles": 10520,
+      "points": 0,
+      "lines": 873
+    },
+    "memory": {
+      "geometries": 153,
+      "textures": 3
+    }
+  },
+  {
+    "stage": "baseline",
+    "scene": 1,
+    "render": {
+      "frame": 11,
+      "calls": 235,
+      "triangles": 15328,
+      "points": 0,
+      "lines": 897
+    },
+    "memory": {
+      "geometries": 232,
+      "textures": 3
+    }
+  },
+  {
+    "stage": "v4",
+    "scene": 0,
+    "render": {
+      "frame": 8,
+      "calls": 194,
+      "triangles": 13010,
+      "points": 0,
+      "lines": 873
+    },
+    "memory": {
+      "geometries": 186,
+      "textures": 9
+    }
+  },
+  {
+    "stage": "v4",
+    "scene": 1,
+    "render": {
+      "frame": 14,
+      "calls": 259,
+      "triangles": 17960,
+      "points": 0,
+      "lines": 897
+    },
+    "memory": {
+      "geometries": 256,
+      "textures": 10
+    }
+  }
+]

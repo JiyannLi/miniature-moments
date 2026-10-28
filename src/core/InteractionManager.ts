@@ -26,7 +26,9 @@ export class InteractionManager {
           this.moving,
           Math.hypot(e.clientX - this.start.x, e.clientY - this.start.y),
         );
-      if (e.pointerType === "mouse") this.hover(this.pick(e));
+      if (e.pointerType === "mouse" && !this.pointers.size)
+        this.hover(this.pick(e));
+      else if (this.pointers.size) this.hover(undefined);
     });
     canvas.addEventListener("pointerup", (e) => {
       if (this.moving < 6 && this.pointers.size === 1) {
@@ -43,6 +45,9 @@ export class InteractionManager {
       this.moving = 100;
     });
     canvas.addEventListener("pointerleave", () => this.hover(undefined));
+  }
+  update() {
+    this.outline?.update();
   }
   clear() {
     this.hover(undefined);
@@ -84,7 +89,7 @@ export class InteractionManager {
     if (t) {
       this.outline = new T.BoxHelper(t.object, 0xc7c7a8);
       (this.outline.material as T.LineBasicMaterial).transparent = true;
-      (this.outline.material as T.LineBasicMaterial).opacity = 0.3;
+      (this.outline.material as T.LineBasicMaterial).opacity = 0.14;
       t.object.parent?.add(this.outline);
       t.object.traverse((o) => {
         if (

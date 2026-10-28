@@ -1,4 +1,5 @@
 import * as T from "three";
+import { OceanController } from "../ocean/OceanController";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { clearMaterialCache } from "./geometry";
 import type { World } from "./types";
@@ -27,6 +28,8 @@ export function disposeTree(root: T.Object3D) {
 export class SceneManager {
   world!: World;
   index = 0;
+  revision = 0;
+  readonly ocean = new OceanController();
   constructor(
     private scene: T.Scene,
     private notify: (s: string) => void,
@@ -40,9 +43,12 @@ export class SceneManager {
     clearMaterialCache();
     this.index = index;
     this.world =
-      index === 0 ? createKonbini(this.notify) : createCoast(this.notify);
+      index === 0
+        ? createKonbini(this.notify)
+        : createCoast(this.notify, this.ocean);
     this.batchStatic();
     this.scene.add(this.world.root);
+    this.revision++;
   }
   private batchStatic() {
     const buckets = new Map<T.Material, T.Mesh[]>();

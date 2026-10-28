@@ -526,3 +526,291 @@ dialog b {
     transition: none !important;
   }
 }
+/* 4.0 refinements: compact controls, one quiet ocean panel, no full-screen overlay. */
+[hidden] {
+  display: none !important;
+}
+.brand {
+  letter-spacing: 2px;
+}
+.scene-heading h1 {
+  font-size: 27px;
+  letter-spacing: 0.1px;
+}
+.scene-heading p {
+  letter-spacing: 0.6px;
+}
+.tool-button,
+.scene-card,
+.segmented button {
+  transition:
+    background 0.18s,
+    color 0.18s,
+    border-color 0.18s;
+}
+.tool-button:hover {
+  color: #e6d5ad;
+}
+.toolbar {
+  background: #152331e8;
+  backdrop-filter: blur(8px);
+  gap: 12px;
+}
+.tool-button:active {
+  background: #cad6cf16;
+  border-radius: 4px;
+}
+#weather-condition {
+  appearance: none;
+  background: #243644;
+  color: #d7e1df;
+  border: 1px solid #a9bdc32b;
+  border-radius: 4px;
+  padding: 7px 9px;
+  font-family: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+#weather-condition option {
+  background: #172b3b;
+}
+.weather {
+  gap: 8px;
+}
+.ocean-panel {
+  right: 28px;
+  bottom: 112px;
+  width: 354px;
+  max-height: calc(100dvh - 140px);
+  overflow: auto;
+  padding: 22px;
+  border: 1px solid #a0b8c133;
+  border-radius: 10px;
+  background: #172838f5;
+  box-shadow: 0 16px 45px #07122055;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition:
+    opacity 0.28s,
+    transform 0.28s;
+  scrollbar-width: thin;
+  scrollbar-color: #78919b #172838;
+}
+.ocean-panel.is-open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.ocean-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.ocean-heading h2 {
+  font:
+    25px/1.2 Georgia,
+    serif;
+  margin: 7px 0 18px;
+  font-weight: 400;
+}
+.ocean-heading .eyebrow {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: #b7c3bf;
+}
+#ocean-close {
+  font-size: 24px;
+  color: #a9bec9;
+  padding: 0 2px;
+}
+.ocean-modes,
+.ocean-presets {
+  display: flex;
+  gap: 5px;
+}
+.ocean-modes {
+  margin-bottom: 11px;
+  background: #0f1f2e80;
+  border-radius: 5px;
+  padding: 4px;
+}
+.ocean-modes button,
+.ocean-presets button {
+  flex: 1;
+  font-size: 11px;
+  padding: 9px 5px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #9eb4bf;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+.ocean-modes small,
+.ocean-presets small {
+  font-size: 9px;
+  display: block;
+  margin-top: 4px;
+  color: #91a6b2;
+}
+.ocean-modes .selected,
+.ocean-presets .selected {
+  background: #b7c8c315;
+  border-color: #b8c7c03d;
+  color: #e1deca;
+}
+.ocean-presets {
+  margin-bottom: 18px;
+}
+.ocean-presets button {
+  border-color: #a5b9c021;
+}
+.ocean-sliders {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 18px;
+}
+.ocean-field > span {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  font-size: 10px;
+  gap: 3px;
+}
+.ocean-field small {
+  grid-row: 2;
+  font-size: 7px;
+  color: #91a8b5;
+}
+.ocean-field output {
+  grid-column: 2;
+  grid-row: 1/3;
+  align-self: center;
+  color: #c6cebe;
+  font:
+    10px ui-monospace,
+    monospace;
+  font-variant-numeric: tabular-nums;
+}
+.ocean-field input {
+  display: block;
+  margin: 10px 0 0;
+  width: 100%;
+  accent-color: #aabda9;
+  height: 16px;
+  cursor: pointer;
+}
+.ocean-field input:focus-visible {
+  outline: 1px solid #d9c6a1;
+  outline-offset: 3px;
+}
+.ocean-note {
+  font-size: 9px;
+  line-height: 1.9;
+  color: #9cb1bd;
+  margin: 20px 0 0;
+  border-top: 1px solid #b0c5ce1a;
+  padding-top: 13px;
+}
+.ocean-panel:focus-within {
+  opacity: 1;
+}
+.scene-selector {
+  background: #152331dc;
+  backdrop-filter: blur(8px);
+}
+@media (max-width: 1200px) and (min-width: 951px) {
+  footer {
+    left: auto;
+    right: 24px;
+    transform: none;
+  }
+  .location {
+    display: none;
+  }
+  .hint {
+    bottom: 100px;
+  }
+}
+@media (max-width: 950px) {
+  .ocean-panel {
+    right: 20px;
+    bottom: 205px;
+    max-height: calc(100dvh - 265px);
+  }
+  .toolbar {
+    gap: 9px;
+    padding: 10px;
+  }
+  .scene-selector {
+    bottom: 112px;
+  }
+  .hint {
+    bottom: 185px;
+  }
+  .tool-label {
+    display: none;
+  }
+}
+@media (max-width: 600px) {
+  .scene-heading h1 {
+    font-size: 24px;
+  }
+  .toolbar {
+    max-width: calc(100vw - 24px);
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 7px 10px;
+    min-width: 335px;
+    padding: 10px 12px;
+  }
+  .weather {
+    gap: 7px;
+  }
+  .tool-button {
+    padding: 4px;
+  }
+  .scene-selector {
+    bottom: 131px;
+  }
+  .hint {
+    bottom: 198px;
+  }
+  .ocean-panel {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    bottom: 220px;
+    max-height: calc(100dvh - 282px);
+    padding: 18px;
+  }
+  .ocean-sliders {
+    gap: 13px 18px;
+  }
+  .ocean-note {
+    margin-top: 15px;
+  }
+  .toast {
+    bottom: 220px;
+  }
+  .ocean-divider {
+    display: none;
+  }
+  .ocean-heading h2 {
+    margin-bottom: 13px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ocean-panel,
+  .tool-button,
+  .scene-card,
+  .segmented button {
+    transition: none !important;
+  }
+}
+
+@media (pointer: coarse) {
+  .ocean-field input {
+    min-height: 24px;
+  }
+}
