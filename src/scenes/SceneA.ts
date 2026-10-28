@@ -45,8 +45,20 @@ export function createKonbini(notify: (s: string) => void): World {
       );
     }
   const paint = mat("#b8c2c8", 0.4);
-  for (let i = 0; i < 6; i++)
-    box(root, 0.5, 0.012, 1.9, 0.1 + i * 0.85, 0.055, 2.8, paint);
+  // Rotate the complete crossing about its original centre: pedestrians cross Z.
+  for (let i = 0; i < 6; i++) {
+    const stripe = box(
+      root,
+      0.5,
+      0.012,
+      1.9,
+      2.225,
+      0.055,
+      2.8 + (i - 2.5) * 0.85,
+      paint,
+    );
+    stripe.rotation.y = Math.PI / 2;
+  }
   for (let x = -6; x < 10.1; x += 2.4)
     box(root, 1.2, 0.012, 0.06, x, 0.055, 4.9, paint);
   // Shop shell: open front, separate side and rear walls, actual furnished interior.

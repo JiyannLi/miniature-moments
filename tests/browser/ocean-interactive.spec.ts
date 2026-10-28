@@ -206,7 +206,7 @@ test("正式场景鼠标波、拖动和缩放隔离、十一参数、切换释�
   if (video)
     await video.saveAs("docs/ocean-interactive/coast-interaction.webm");
 });
-test("触屏和减少运动不注入水波，窄屏新增滑块可滚动操作", async ({
+test("触屏静止轻点和减少运动不注入水波，窄屏滑块可滚动操作", async ({
   browser,
 }) => {
   for (const reduced of [false, true]) {

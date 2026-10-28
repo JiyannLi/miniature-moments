@@ -3,6 +3,7 @@ import type { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import type { OceanWater } from "../water/OceanWater";
 import { waterLevel } from "../water/wave";
 import { RippleStroke } from "./RippleStroke";
+type PointerSample = { x: number; y: number; time: number };
 export class OceanInteraction {
   private water?: OceanWater;
   private ray = new T.Raycaster();
@@ -10,7 +11,10 @@ export class OceanInteraction {
   private point = new T.Vector3();
   private previousMatrix = new T.Matrix4();
   private previousProjection = new T.Matrix4();
-  private pending?: { x: number; y: number; time: number };
+  private pending?: PointerSample;
+  private touches = new Map<number, PointerSample>();
+  private gestureOwner?: "water" | "camera";
+  private forwarding = false;
   private pauseUntil = 0;
   private reason = "idle";
   private stroke = new RippleStroke((x, z, a) => this.water?.inject(x, z, a));
@@ -18,7 +22,7 @@ export class OceanInteraction {
   constructor(
     private canvas: HTMLCanvasElement,
     private camera: T.Camera,
-    controls: OrbitControls,
+    private controls: OrbitControls,
     private reduced = false,
   ) {
     const on = (
@@ -30,6 +34,19 @@ export class OceanInteraction {
       target.addEventListener(name, fn, options);
       this.cleanup.push(() => target.removeEventListener(name, fn, options));
     };
+    // Capture before OrbitControls' bubble listeners. Only a gesture beginning
+    // on unobstructed water belongs to us; camera gestures pass through intact.
+    for (const name of [
+      "pointerdown",
+      "pointermove",
+      "pointerup",
+      "pointercancel",
+      "lostpointercapture",
+    ])
+      on(canvas, name, ((e: PointerEvent) => this.touch(e)) as EventListener, {
+        capture: true,
+        passive: false,
+      });
     on(canvas, "pointermove", ((e: PointerEvent) => {
       if (e.pointerType !== "mouse" || e.buttons || this.reduced) {
         this.reset();
@@ -54,8 +71,8 @@ export class OceanInteraction {
       },
       { passive: true },
     );
-    on(window, "blur", () => this.reset());
-    on(document, "visibilitychange", () => this.reset());
+    on(window, "blur", () => this.cancelTouches());
+    on(document, "visibilitychange", () => this.cancelTouches());
     const reset = () => this.reset();
     controls.addEventListener("start", reset);
     controls.addEventListener("end", reset);
@@ -68,8 +85,110 @@ export class OceanInteraction {
     this.pending = undefined;
     this.stroke.clear();
   }
-  setWater(water?: OceanWater) {
+  private sample(e: PointerEvent): PointerSample {
+    return { x: e.clientX, y: e.clientY, time: e.timeStamp / 1000 };
+  }
+  private forward(type: string, id: number, p: PointerSample) {
+    this.forwarding = true;
+    try {
+      this.canvas.dispatchEvent(
+        new PointerEvent(type, {
+          pointerId: id,
+          pointerType: "touch",
+          isPrimary: true,
+          clientX: p.x,
+          clientY: p.y,
+          button: 0,
+          buttons: type === "pointerdown" ? 1 : 0,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    } finally {
+      this.forwarding = false;
+    }
+  }
+  private stopCameraInertia() {
+    // Flush pending damping through the public controls API without moving the
+    // rendered view. A water gesture must not inherit the previous orbit's drift.
+    const position = this.camera.position.clone();
+    const quaternion = this.camera.quaternion.clone();
+    const target = this.controls.target.clone();
+    const camera = this.camera as T.OrthographicCamera;
+    const zoom = camera.zoom;
+    const damping = this.controls.enableDamping;
+    this.controls.enableDamping = false;
+    this.controls.update();
+    this.camera.position.copy(position);
+    this.camera.quaternion.copy(quaternion);
+    this.controls.target.copy(target);
+    camera.zoom = zoom;
+    camera.updateProjectionMatrix();
+    this.controls.update();
+    this.controls.enableDamping = damping;
+  }
+  private touch(e: PointerEvent) {
+    if (e.pointerType !== "touch" || this.forwarding || !this.water) return;
+    if (e.type === "pointerdown") {
+      const first = this.touches.entries().next().value;
+      this.touches.set(e.pointerId, this.sample(e));
+      if (!first) {
+        this.reset();
+        this.camera.updateMatrixWorld();
+        this.gestureOwner =
+          !this.reduced && this.pick(this.sample(e)) ? "water" : "camera";
+        if (this.gestureOwner === "water") {
+          this.stopCameraInertia();
+          this.canvas.setPointerCapture(e.pointerId);
+          this.pending = this.sample(e);
+        }
+      } else if (this.gestureOwner === "water") {
+        // OrbitControls did not see the first down. Replay its current position
+        // before the real second down, preserving the native two-finger gesture.
+        this.gestureOwner = "camera";
+        this.reset();
+        this.forward("pointerdown", first[0], first[1]);
+      }
+    } else {
+      if (!this.touches.has(e.pointerId)) return;
+      if (e.type === "pointermove") {
+        this.touches.set(e.pointerId, this.sample(e));
+        if (this.gestureOwner === "water") this.pending = this.sample(e);
+      } else {
+        const wasWater = this.gestureOwner === "water";
+        this.touches.delete(e.pointerId);
+        if (!this.touches.size) this.gestureOwner = undefined;
+        this.reset();
+        if (wasWater) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          if (this.canvas.hasPointerCapture(e.pointerId))
+            this.canvas.releasePointerCapture(e.pointerId);
+          return;
+        }
+        if (e.type === "lostpointercapture")
+          this.forward("pointercancel", e.pointerId, this.sample(e));
+      }
+    }
+    if (this.gestureOwner === "water") {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }
+  }
+  private cancelTouches() {
+    const camera = this.gestureOwner === "camera";
+    const touches = [...this.touches];
+    this.touches.clear();
+    this.gestureOwner = undefined;
     this.reset();
+    for (const [id, p] of touches) {
+      if (camera) this.forward("pointercancel", id, p);
+      if (this.canvas.hasPointerCapture(id))
+        this.canvas.releasePointerCapture(id);
+    }
+  }
+  setWater(water?: OceanWater) {
+    this.cancelTouches();
     this.water = water;
     this.camera.updateMatrixWorld();
     this.previousMatrix.copy(this.camera.matrixWorld);
@@ -97,6 +216,21 @@ export class OceanInteraction {
     const e = this.pending;
     this.pending = undefined;
     if (!e || !this.water || this.reduced) return;
+    const point = this.pick(e);
+    if (!point) {
+      this.stroke.clear();
+      return;
+    }
+    this.stroke.move(
+      point.x,
+      point.z,
+      e.time,
+      this.water.controller.current.interactionStrength,
+    );
+    this.reason = "water";
+  }
+  private pick(e: PointerSample) {
+    if (!this.water) return;
     const rect = this.canvas.getBoundingClientRect();
     this.ray.setFromCamera(
       new T.Vector2(
@@ -114,7 +248,6 @@ export class OceanInteraction {
       Math.abs(this.point.z) >= this.water.dimensions.depth / 2
     ) {
       this.reason = "outside-water";
-      this.stroke.clear();
       return;
     }
     // Respect real geometry occluding the reference water plane, e.g. a house.
@@ -128,16 +261,9 @@ export class OceanInteraction {
       );
     if (blocker) {
       this.reason = `occluded:${blocker.object.name || blocker.object.type}`;
-      this.stroke.clear();
       return;
     }
-    this.stroke.move(
-      this.point.x,
-      this.point.z,
-      e.time,
-      this.water.controller.current.interactionStrength,
-    );
-    this.reason = "water";
+    return this.point;
   }
   probes() {
     if (!this.water) return [];
@@ -158,9 +284,12 @@ export class OceanInteraction {
       speed: this.stroke.lastSpeed,
       amplitude: this.stroke.lastAmplitude,
       probes: this.probes(),
+      gestureOwner: this.gestureOwner ?? "none",
+      touches: this.touches.size,
     };
   }
   dispose() {
+    this.cancelTouches();
     this.cleanup.forEach((fn) => fn());
     this.reset();
     this.water = undefined;
