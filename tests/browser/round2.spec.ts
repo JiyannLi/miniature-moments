@@ -94,7 +94,7 @@ test("海床与水体侧壁可观察，水面时间持续更新且不新增着�
   await expect
     .poll(async () => (await debug(page)).state.water.time)
     .toBeGreaterThan(t + 0.1);
-  expect((await debug(page)).state.water.rocks).toBe(22);
+  expect((await debug(page)).state.water.rocks).toBe(8);
   await page.mouse.move(400, 450);
   await page.mouse.down();
   await page.mouse.move(900, 410, { steps: 14 });

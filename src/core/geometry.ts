@@ -1,4 +1,5 @@
 import * as T from "three";
+import { branchBetween, gableRoof } from "./structures";
 const materialCache = new Map<string, T.MeshStandardMaterial>();
 export function clearMaterialCache() {
   materialCache.clear();
@@ -113,19 +114,29 @@ export function tree(
   g.add(group);
   const bark = mat("#4c4652");
   cylinder(group, 0.16, 2, 0, 1, 0, bark, 0.09);
+  const links: Array<{ start: number[]; end: number[]; parent?: number }> = [];
   for (let i = 0; i < 5; i++) {
     const a = i * 2.4;
-    const branch = box(
-      group,
-      0.12,
-      1.5,
-      0.12,
-      Math.cos(a) * 0.36,
-      1.9,
-      Math.sin(a) * 0.36,
-      bark,
+    const crownCenter = new T.Vector3(
+      Math.cos(a) * 0.65,
+      2.5 + (i % 2) * 0.45,
+      Math.sin(a) * 0.6,
     );
-    branch.rotation.z = Math.sin(a) * 0.6;
+    const start = new T.Vector3(0, 1.35 + (i % 3) * 0.13, 0);
+    branchBetween(group, start, crownCenter, 0.075, bark);
+    links.push({ start: start.toArray(), end: crownCenter.toArray() });
+    if (i < 3) {
+      const fork = start.clone().lerp(crownCenter, 0.67);
+      const tip = crownCenter
+        .clone()
+        .add(new T.Vector3(Math.sin(a) * 0.22, 0.25, Math.cos(a) * 0.18));
+      branchBetween(group, fork, tip, 0.037, bark);
+      links.push({
+        start: fork.toArray(),
+        end: tip.toArray(),
+        parent: links.length - 1,
+      });
+    }
     const crown = new T.Mesh(
       new T.IcosahedronGeometry(0.9, 1),
       mat(
@@ -142,6 +153,8 @@ export function tree(
     crown.castShadow = true;
     group.add(crown);
   }
+  group.name = pink ? "sakura-tree" : "green-tree";
+  group.userData.branchLinks = links;
   return group;
 }
 export function fence(
@@ -194,11 +207,17 @@ export function house(
   h = 3,
   d = 2.3,
   color = "#59657b",
+  roofStyle: "flat" | "gable" = "flat",
 ) {
   const m = mat(color);
   box(g, w, h, d, x, y + h / 2, z, m);
   const roof = mat("#344658");
-  box(g, w + 0.22, 0.17, d + 0.24, x, y + h + 0.07, z, roof);
+  if (roofStyle === "gable") {
+    const structure = gableRoof(w, d, y + h, mat("#3c5368"), m);
+    structure.position.x = x;
+    structure.position.z = z;
+    g.add(structure);
+  } else box(g, w + 0.22, 0.17, d + 0.24, x, y + h + 0.07, z, roof);
   for (let f = 0; f < Math.max(1, Math.floor(h / 1.2)); f++)
     for (let i = 0; i < 2; i++) {
       box(

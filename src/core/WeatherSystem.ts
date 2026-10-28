@@ -1,4 +1,5 @@
 import * as T from "three";
+import { coastRoadHeight } from "../scenes/CoastalGround";
 export class WeatherSystem {
   root = new T.Group();
   level = 1;
@@ -84,7 +85,7 @@ export class WeatherSystem {
       const z = coast ? 2.4 + (s.z - 2.4) * 0.8 : s.z;
       this.dummy.position.set(
         coast ? s.x * 0.24 : s.x,
-        coast ? 0.43 + z * 0.055 + 0.068 : 0.045,
+        coast ? coastRoadHeight(z) + 0.008 : 0.045,
         z,
       );
       this.dummy.rotation.x = -Math.PI / 2;

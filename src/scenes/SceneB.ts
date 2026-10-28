@@ -11,6 +11,14 @@ import {
   label,
   glowPatch,
 } from "../core/geometry";
+import {
+  coastalRoadbed,
+  coastRoadHeight,
+  coastRailTop,
+  coastRoadSlope,
+  coastSidewalkHeight,
+  coastTerrainHeight,
+} from "./CoastalGround";
 import { CoastalWater } from "../water/CoastalWater";
 import { createCrossingArm } from "./CrossingArm";
 import { Crossing } from "../core/Crossing";
@@ -27,31 +35,23 @@ export function createCoast(notify: (s: string) => void): World {
     cream = mat("#ddcdae");
   // Coast is lower than the street. The road slopes continuously to the shore.
   box(root, 14, 0.34, 8.4, 0, 0.08, 1.8, ground);
-  const water = new CoastalWater();
+  const water = new CoastalWater({ openShore: true });
   root.add(water.root);
-  const slope = 0.055;
-  const roadY = (z: number) => 0.43 + z * slope;
-  const road = box(root, 3.5, 0.12, 8.4, 0, 0.43, 1.8, asphalt);
-  road.rotation.x = -slope; // y rises toward the foreground (+z)
-  // Correct slab center height to match the plane y=.43+.055z.
-  road.position.y = roadY(1.8);
-  for (const side of [-1, 1]) {
-    const sidewalk = box(
-      root,
-      0.65,
-      0.23,
-      8.4,
-      side * 2.08,
-      roadY(1.8) + 0.055,
-      1.8,
-      mat("#9a9ba5"),
-    );
-    sidewalk.rotation.x = -slope;
+  root.add(coastalRoadbed(ground, asphalt, mat("#9a9ba5")));
+  for (const side of [-1, 1])
     for (let i = 0; i < 10; i++) {
       const z = -2.3 + i * 0.85;
-      box(root, 0.6, 0.014, 0.018, side * 2.08, roadY(z) + 0.18, z, steel);
+      box(
+        root,
+        0.6,
+        0.014,
+        0.018,
+        side * 2.08,
+        coastSidewalkHeight(z) + 0.009,
+        z,
+        steel,
+      );
     }
-  }
   for (let i = 0; i < 5; i++)
     box(
       root,
@@ -59,15 +59,23 @@ export function createCoast(notify: (s: string) => void): World {
       0.015,
       1.35,
       -1.25 + i * 0.62,
-      roadY(3.9) + 0.09,
+      coastRoadHeight(3.9) + 0.011,
       3.9,
       mat("#d2cbcc", 0.3),
-    ).rotation.x = -slope;
+    ).rotation.x = -Math.atan(coastRoadSlope(3.9));
   for (let z = 1.6; z < 6; z += 1.25)
-    box(root, 0.045, 0.014, 0.65, 0, roadY(z) + 0.075, z, cream).rotation.x =
-      -slope;
+    box(
+      root,
+      0.045,
+      0.014,
+      0.65,
+      0,
+      coastRoadHeight(z) + 0.011,
+      z,
+      cream,
+    ).rotation.x = -Math.atan(coastRoadSlope(z));
   // Railroad is level, meeting the sloped road at z=0.
-  box(root, 14, 0.16, 1.25, 0, 0.34, 0, mat("#596371"));
+  box(root, 14, 0.16, 1.25, 0, coastRailTop - 0.23, 0, mat("#596371"));
   const sleeperMat = mat("#5f5b5c");
   const sleepers = new T.InstancedMesh(
     new T.BoxGeometry(0.13, 0.09, 1),
@@ -76,13 +84,13 @@ export function createCoast(notify: (s: string) => void): World {
   );
   const dummy = new T.Object3D();
   for (let i = 0; i < 48; i++) {
-    dummy.position.set(-6.8 + i * 0.29, 0.46, 0);
+    dummy.position.set(-6.8 + i * 0.29, coastRailTop - 0.11, 0);
     dummy.updateMatrix();
     sleepers.setMatrixAt(i, dummy.matrix);
   }
   root.add(sleepers);
   for (const z of [-0.37, 0.37])
-    box(root, 14, 0.08, 0.055, 0, 0.53, z, mat("#b1b6ba", 0.25));
+    box(root, 14, 0.08, 0.055, 0, coastRailTop - 0.04, z, mat("#b1b6ba", 0.25));
   // Seawall and houses flank a real open street.
   for (const side of [-1, 1]) {
     for (let ix = 0; ix < 5; ix++)
@@ -108,29 +116,7 @@ export function createCoast(notify: (s: string) => void): World {
       1.7,
       side < 0 ? "#747e91" : "#6b7787",
     );
-    house(root, side * 5.05, 0.3, 4.0, 2.3, 1.8, 2.5, "#737786");
-    const roof = box(
-      root,
-      2.9,
-      0.18,
-      1.65,
-      side * 5.05,
-      2.34,
-      3.4,
-      mat("#3c5368"),
-    );
-    roof.rotation.x = 0.35;
-    const roof2 = box(
-      root,
-      2.9,
-      0.18,
-      1.65,
-      side * 5.05,
-      2.34,
-      4.75,
-      mat("#3c5368"),
-    );
-    roof2.rotation.x = -0.35;
+    house(root, side * 5.05, 0.3, 4, 2.3, 1.8, 2.5, "#737786", "gable");
   }
   tree(root, -4.05, 0.35, 1.6, true, 1.2);
   tree(root, 5.1, 0.35, 0.9, true, 0.95);
@@ -143,13 +129,16 @@ export function createCoast(notify: (s: string) => void): World {
     );
     o.position.set(
       (i % 2 ? -1 : 1) * (2.8 + (i % 4) * 0.35),
-      0.55,
+      coastTerrainHeight(
+        (i % 2 ? -1 : 1) * (2.8 + (i % 4) * 0.35),
+        1.6 + Math.floor(i / 4) * 0.3,
+      ) + 0.22,
       1.6 + Math.floor(i / 4) * 0.3,
     );
     root.add(o);
   }
   const tram = new T.Group();
-  tram.position.set(4.7, 0.59, 0);
+  tram.position.set(4.7, coastRailTop + 0.02, 0);
   root.add(tram);
   const green = mat("#487c71", 0.45);
   box(tram, 4.2, 1.25, 1.13, 0, 0.95, 0, green);
@@ -224,7 +213,7 @@ export function createCoast(notify: (s: string) => void): World {
     const x = side * 2.18,
       z = side * 0.85;
     const signal = new T.Group();
-    signal.position.set(x, roadY(z) + 0.1, z);
+    signal.position.set(x, coastSidewalkHeight(z), z);
     root.add(signal);
     cylinder(signal, 0.075, 2.45, 0, 1.225, 0, steel);
     const yellow = mat("#cfb56d");
@@ -265,7 +254,12 @@ export function createCoast(notify: (s: string) => void): World {
   }
   let lastState = "idle";
   for (const x of [-2.7, 5.9]) {
-    const a = pole(root, x, 1, roadY(1)),
+    const a = pole(
+        root,
+        x,
+        1,
+        Math.abs(x) < 3.1 ? coastTerrainHeight(x, 1) : 0.485,
+      ),
       b = pole(root, x, -2.4, 0.2);
     wire(root, a, b, 0.17);
   }
@@ -276,7 +270,7 @@ export function createCoast(notify: (s: string) => void): World {
   for (const side of [-1, 1]) {
     const x = side * 2.6,
       z = 2.6;
-    const y = roadY(z);
+    const y = coastTerrainHeight(x, z);
     cylinder(root, 0.065, 3.7, x, y + 1.85, z, steel);
     box(root, 0.65, 0.1, 0.1, x - side * 0.25, y + 3.6, z, steel);
     box(root, 0.45, 0.1, 0.32, x - side * 0.5, y + 3.5, z, lampMat);
@@ -284,15 +278,20 @@ export function createCoast(notify: (s: string) => void): World {
     light.position.set(x - side * 0.5, y + 3.3, z);
     root.add(light);
     streetLights.push(light);
-    glowPatch(
+    const reflection = glowPatch(
       root,
       x - side * 0.5,
       2.7,
       0.65,
       2.6,
       "#efb28c",
-      0.51,
-    ).rotation.x = -slope;
+      coastRoadHeight(0) + 0.015,
+    );
+    const points = reflection.geometry.attributes.position;
+    for (let i = 0; i < points.count; i++)
+      points.setY(i, coastRoadHeight(points.getZ(i)) + 0.008);
+    points.needsUpdate = true;
+    reflection.geometry.computeBoundingSphere();
   }
   label(
     root,

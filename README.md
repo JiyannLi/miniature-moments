@@ -108,3 +108,15 @@ src/
 调研与水体方案比较见 [docs/round2/RESEARCH.md](docs/round2/RESEARCH.md)，本轮关键截图和验收记录见 [docs/round2/REPORT.md](docs/round2/REPORT.md)。水体隔离原型可以访问开发/预览服务器下的 `water-lab.html?mode=shader` 或 `?mode=physical`。
 
 水体 Shader 使用近似 Fresnel 与天空光色，不提供真实建筑倒影或物理折射。iPad 横竖屏检查为 Chromium 触屏模拟，不能替代真实 Safari 硬件测试。
+
+## 第三轮：结构修复与海水稳定性
+
+本轮修复截图涉及的树枝连接、便利店白护栏、两栋双坡住宅及道口路基地形；海水去除与陆地共面的透明侧壁，保留深度测试，改进波浪、冷暖水色，并将水下岩石减少为 8 块贴地的不规则模型。UI、相机操作、其他正常道路设施保持不变。
+
+[本轮交付报告、根因、截图与动态录屏](docs/round3/REPORT.md)。相关浏览器回归：
+
+```bash
+npm run test:browser -- tests/browser/round3.spec.ts tests/browser/worlds.spec.ts
+```
+
+录屏为可选测试输出；如需重新录制，可先准备 Playwright FFmpeg，再设置 `RECORD_WATER_VIDEO=1` 运行本轮水体用例。正常浏览器测试无需视频编码器。

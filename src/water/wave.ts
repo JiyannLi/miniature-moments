@@ -1,18 +1,28 @@
-// Shared analytical field: top surface and sidewall use identical boundary heights.
+// Top surface and cut faces share exactly the same slow, low-amplitude wave field.
 export const waterLevel = 0.12,
   waterBottom = -0.78;
+export const waveTerms = [
+  { x: 0.95, z: 1.2, speed: 0.52, amplitude: 0.043, cosine: false },
+  { x: -0.6, z: 2.4, speed: -0.36, amplitude: 0.019, cosine: false },
+  { x: 4.5, z: 3.3, speed: 0.28, amplitude: 0.006, cosine: true },
+] as const;
+export const maxWaveHeight = waveTerms.reduce((s, w) => s + w.amplitude, 0);
 export function waveHeight(x: number, z: number, time: number) {
-  return (
-    Math.sin(x * 2.1 + z * 1.5 + time * 0.65) * 0.018 +
-    Math.sin(z * 4.1 - x * 0.8 - time * 0.47) * 0.009 +
-    Math.cos(x * 5.2 + z * 3.3 + time * 0.32) * 0.004
+  return waveTerms.reduce(
+    (s, w) =>
+      s +
+      (w.cosine ? Math.cos : Math.sin)(x * w.x + z * w.z + time * w.speed) *
+        w.amplitude,
+    0,
   );
 }
+const glslFloat = (n: number) => (Number.isInteger(n) ? `${n}.0` : String(n));
+const phase = (w: (typeof waveTerms)[number]) =>
+  `(p.x*${glslFloat(w.x)}+p.y*${glslFloat(w.z)}+t*${glslFloat(w.speed)})`;
 export const waveGLSL = `
-float wave(vec2 p,float t){return sin(p.x*2.1+p.y*1.5+t*.65)*.018+sin(p.y*4.1-p.x*.8-t*.47)*.009+cos(p.x*5.2+p.y*3.3+t*.32)*.004;}
+float wave(vec2 p,float t){return ${waveTerms.map((w) => `${w.cosine ? "cos" : "sin"}${phase(w)}*${glslFloat(w.amplitude)}`).join("+")};}
 vec3 waveNormal(vec2 p,float t){
- float a=p.x*2.1+p.y*1.5+t*.65,b=p.y*4.1-p.x*.8-t*.47,c=p.x*5.2+p.y*3.3+t*.32;
- float dx=cos(a)*.0378-cos(b)*.0072-sin(c)*.0208;
- float dz=cos(a)*.027+cos(b)*.0369-sin(c)*.0132;
+ float dx=${waveTerms.map((w) => `${w.cosine ? "-sin" : "cos"}${phase(w)}*${glslFloat(w.amplitude * w.x)}`).join("+")};
+ float dz=${waveTerms.map((w) => `${w.cosine ? "-sin" : "cos"}${phase(w)}*${glslFloat(w.amplitude * w.z)}`).join("+")};
  return normalize(vec3(-dx,1.,-dz));
 }`;

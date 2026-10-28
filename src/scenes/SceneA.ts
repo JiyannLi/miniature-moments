@@ -1,4 +1,5 @@
 import * as T from "three";
+import { roadsideFence } from "../core/structures";
 import { createStorefront, storefront } from "./Storefront";
 import {
   base,
@@ -7,7 +8,6 @@ import {
   mat,
   house,
   tree,
-  fence,
   pole,
   wire,
   label,
@@ -165,7 +165,13 @@ export function createKonbini(notify: (s: string) => void): World {
       -0.65 - i * 0.27,
       concrete,
     );
-  fence(root, -6.7, -0.6, 2.5, false, 0.5);
+  root.add(
+    roadsideFence(
+      new T.Vector3(-6.7, 0.24, -0.32),
+      new T.Vector3(-3.7, 0.24, -0.32),
+      mat("#a2b6bd"),
+    ),
+  );
   tree(root, -3.1, 0.25, -3.3, false, 0.85);
   tree(root, 5.65, 0.25, -3.9, false, 1.15);
   for (let i = 0; i < 6; i++) {
@@ -177,7 +183,13 @@ export function createKonbini(notify: (s: string) => void): World {
       continue;
     box(root, 0.13, 0.6, 0.13, x, 0.45, 0.04, mat("#baa56b"));
   }
-  fence(root, 5.1, 0, 2.1, false);
+  root.add(
+    roadsideFence(
+      new T.Vector3(5.1, 0.24, -0.32),
+      new T.Vector3(6.7, 0.24, -0.32),
+      mat("#a2b6bd"),
+    ),
+  );
   const p1 = pole(root, -2.9, 0.1),
     p2 = pole(root, 6, -1.2);
   wire(root, p1, p2);

@@ -1,0 +1,20 @@
+[
+  {
+    "stage": "before",
+    "transparentTrianglesCoplanarWithLand": 128,
+    "sideMaterialSide": 2,
+    "depthTest": true,
+    "depthWrite": false,
+    "shorePlaneWorldZ": -2.4000000000000004,
+    "landRearZ": -2.4000000000000004
+  },
+  {
+    "stage": "after",
+    "transparentTrianglesCoplanarWithLand": 0,
+    "sideMaterialSide": 0,
+    "depthTest": true,
+    "depthWrite": false,
+    "shorePlaneWorldZ": -2.4000000000000004,
+    "landRearZ": -2.4000000000000004
+  }
+]
