@@ -9,6 +9,7 @@ import {
   coastSidewalkHeight,
   coastTerrainHeight,
   coastRailTop,
+  coastCurb,
 } from "../src/scenes/CoastalGround";
 const material = new T.MeshBasicMaterial();
 test("枝干端点连接主干/父枝，枝梢进入树冠，树冠外观和面数有界", () => {
@@ -106,9 +107,11 @@ test("修复屋顶是闭合薄壳、单一屋脊与两侧正坡，屋檐接触�
 test("路基实体填满薄路面下方，平交道口与轨头只差2厘米，边坡回接原地形", () => {
   for (const z of [-2.4, -0.65, 0, 0.65, 1.1, 3.9, 6]) {
     assert.ok(coastRoadHeight(z) > 0.25);
-    assert.ok(
-      Math.abs(coastSidewalkHeight(z) - coastRoadHeight(z) - 0.13) < 1e-8,
-    );
+    if (Math.abs(z) >= 0.8)
+      assert.ok(
+        Math.abs(coastSidewalkHeight(z) - coastRoadHeight(z) - coastCurb) <
+          1e-8,
+      );
     assert.equal(coastTerrainHeight(3.1, z), 0.25);
   }
   for (const z of [-0.37, 0, 0.37])
@@ -124,6 +127,34 @@ test("路基实体填满薄路面下方，平交道口与轨头只差2厘米，�
     assert.ok(hit);
     assert.ok(Math.abs(hit.point.y - coastRoadHeight(z)) < 1e-5);
     assert.ok(new T.Box3().setFromObject(soil).min.y < 0.25);
+  }
+});
+
+test("道口两根轨头连续露出，步行过轨段降平且不改变信号柱处的人行道", () => {
+  const root = coastalRoadbed(material, material, material);
+  root.updateMatrixWorld(true);
+  const ray = new T.Raycaster();
+  // Check the real road/sidewalk/shoulder triangles across both running rails.
+  // A continuous rail mesh alone cannot catch a sidewalk hiding its middle.
+  for (const z of [-0.397, -0.37, -0.343, 0.343, 0.37, 0.397])
+    for (let x = -3.05; x <= 3.05; x += 0.05) {
+      ray.set(new T.Vector3(x, 4, z), new T.Vector3(0, -1, 0));
+      const surface = ray.intersectObject(root, true)[0];
+      assert.ok(surface);
+      assert.ok(
+        surface.point.y < coastRailTop - 0.015,
+        `rail hidden by ${surface.object.name} at x=${x}, z=${z}`,
+      );
+    }
+  for (const z of [-0.85, 0.85, -2.4, 3.9, 6])
+    assert.ok(
+      Math.abs(coastSidewalkHeight(z) - coastRoadHeight(z) - coastCurb) < 1e-8,
+    );
+  for (const z of [-0.8, -0.75, -0.7, -0.65, 0, 0.65, 0.7, 0.75, 0.8]) {
+    ray.set(new T.Vector3(2.18, 4, z), new T.Vector3(0, -1, 0));
+    const surface = ray.intersectObject(root, true)[0];
+    // The existing road curve is sampled into linear profile segments.
+    assert.ok(Math.abs(surface.point.y - coastSidewalkHeight(z)) < 0.0005);
   }
 });
 

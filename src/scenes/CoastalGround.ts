@@ -14,7 +14,11 @@ export function coastRoadSlope(z: number) {
   return 0.055 * Math.min(1, Math.max(0, (Math.abs(z) - 0.65) / 0.45));
 }
 export const coastSidewalkHeight = (z: number) =>
-  coastRoadHeight(z) + coastCurb;
+  // Keep the pedestrian crossing flush with the road, below both rail heads.
+  // Restore the curb before the signal posts at |z|=.85; the existing profile
+  // stations at .65/.8 also keep these short approaches linear and supported.
+  coastRoadHeight(z) +
+  coastCurb * T.MathUtils.clamp((Math.abs(z) - 0.65) / 0.15, 0, 1);
 export function coastTerrainHeight(x: number, z: number) {
   const t = T.MathUtils.clamp((Math.abs(x) - 2.405) / (3.1 - 2.405), 0, 1);
   return T.MathUtils.lerp(coastRoadHeight(z), coastGroundLevel, t);
