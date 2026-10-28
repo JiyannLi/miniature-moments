@@ -1,0 +1,26 @@
+
+> rainy-miniature-worlds@1.0.0 test:browser
+> playwright test tests/browser/final-polish.spec.ts tests/browser/worlds.spec.ts
+
+
+Running 4 tests using 1 worker
+
+(node:25671) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/browser/final-polish.spec.ts:20:1 › 道口完整钢轨枕木与八个固定观察角度 (13.8s)
+{"mouseInjections":36,"water":{"level":0.12,"bottom":-0.78,"time":8.782083999999426,"phase":0.1733599999999977,"dimensions":{"width":14,"depth":6.6,"centerZ":-5.7},"ocean":{"mode":"auto","preset":"breeze","weather":"sunny","rain":1,"target":{"waveHeight":0.135,"waveSpeed":0.8,"waveLength":1.12,"choppiness":0.32,"rippleStrength":0.195,"transparency":0.63,"glassiness":0.56,"reflection":0.4,"interactionStrength":1,"ripplePropagation":1.25,"rippleDamping":1.1},"current":{"waveHeight":0.135,"waveSpeed":0.8,"waveLength":1.12,"choppiness":0.32,"rippleStrength":0.1950000000000361,"transparency":0.6299999999999828,"glassiness":0.56,"reflection":0.4,"interactionStrength":1,"ripplePropagation":1.25,"rippleDamping":1.1}},"night":0,"rocks":8,"maxWaveHeight":0.24,"ripples":{"columns":96,"rows":48,"peak":0,"energy":0,"injections":0,"simulationTime":0.21666666666666665,"revision":0},"debug":false,"segments":{"x":128,"z":64},"probes":[{"x":-3,"z":-1,"displacement":{"x":0.003989348370626265,"y":0.11731435720837166,"z":0.005715070145189319}},{"x":0,"z":0,"displacement":{"x":0.016766378203147515,"y":-0.030436579553755547,"z":0.017627564075048546}},{"x":2,"z":1,"displacement":{"x":-0.02762427598934899,"y":-0.03245852559586079,"z":0.003105193797899166}}],"openShore":true},"resources":{"memory":{"geometries":257,"textures":11},"render":{"frame":102,"calls":257,"triangles":30202,"points":0,"lines":72}},"errors":[]}
+  ✓  2 tests/browser/final-polish.spec.ts:114:1 › 正式海岸保留动态海浪、悬停、镜头及资源释放 (48.8s)
+{
+  memoryBefore: { geometries: 257, textures: 11 },
+  memoryAfter: { geometries: 257, textures: 11 },
+  drawCalls: 260
+}
+  ✓  3 tests/browser/worlds.spec.ts:18:1 › 双场景、实体交互、相机、天气、道口和资源生命周期 (2.2m)
+  ✓  4 tests/browser/worlds.spec.ts:127:1 › 移动端触摸点击、单指旋转、双指缩放及界面 (14.2s)
+
+  4 passed (3.5m)
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

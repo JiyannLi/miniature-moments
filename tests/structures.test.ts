@@ -104,7 +104,7 @@ test("修复屋顶是闭合薄壳、单一屋脊与两侧正坡，屋檐接触�
   assert.ok([...edges.values()].every((n) => n === 2));
   assert.ok(Math.abs(roof.userData.dimensions.ridge - 2.67) < 1e-6);
 });
-test("路基实体填满薄路面下方，平交道口与轨头只差2厘米，边坡回接原地形", () => {
+test("路基实体填满薄路面下方，道口中央露出完整轨道，边坡回接原地形", () => {
   for (const z of [-2.4, -0.65, 0, 0.65, 1.1, 3.9, 6]) {
     assert.ok(coastRoadHeight(z) > 0.25);
     if (Math.abs(z) >= 0.8)
@@ -115,7 +115,7 @@ test("路基实体填满薄路面下方，平交道口与轨头只差2厘米，�
     assert.equal(coastTerrainHeight(3.1, z), 0.25);
   }
   for (const z of [-0.37, 0, 0.37])
-    assert.ok(Math.abs(coastRailTop - coastRoadHeight(z) - 0.02) < 1e-8);
+    assert.ok(Math.abs(coastRailTop - coastRoadHeight(z) - 0.17) < 1e-8);
   const root = coastalRoadbed(material, material, material);
   const soil = root.getObjectByName("solid-road-fill") as T.Mesh,
     road = root.getObjectByName("road-surface") as T.Mesh;
@@ -150,7 +150,9 @@ test("道口两根轨头连续露出，步行过轨段降平且不改变信号�
     assert.ok(
       Math.abs(coastSidewalkHeight(z) - coastRoadHeight(z) - coastCurb) < 1e-8,
     );
-  for (const z of [-0.8, -0.75, -0.7, -0.65, 0, 0.65, 0.7, 0.75, 0.8]) {
+  for (const z of [
+    -0.8, -0.75, -0.7, -0.65, -0.6, 0, 0.6, 0.65, 0.7, 0.75, 0.8,
+  ]) {
     ray.set(new T.Vector3(2.18, 4, z), new T.Vector3(0, -1, 0));
     const surface = ray.intersectObject(root, true)[0];
     // The existing road curve is sampled into linear profile segments.
@@ -186,7 +188,7 @@ test("过轨步行面和缓坡有闭合实体支撑，底面回接地基而非�
       const bottom = ray.intersectObjects(walk)[0];
       assert.ok(top && bottom, `open pedestrian foundation at ${x},${z}`);
       assert.ok(Math.abs(bottom.point.y - 0.24) < 1e-6);
-      assert.ok(top.point.y - bottom.point.y > 0.3);
+      assert.ok(top.point.y - bottom.point.y > 0.15);
       assert.ok(Math.abs(top.point.y - coastSidewalkHeight(z)) < 0.0005);
     }
 });

@@ -23,6 +23,7 @@ import {
   coastTerrainHeight,
 } from "./CoastalGround";
 import { CoastalWater } from "../water/CoastalWater";
+import { rockyCoast } from "./RockyCoast";
 import { createCrossingArm } from "./CrossingArm";
 import { Crossing } from "../core/Crossing";
 import type { World, Target } from "../core/types";
@@ -48,6 +49,7 @@ export function createCoast(
     controller: ocean,
   });
   root.add(water.root);
+  root.add(rockyCoast());
   root.add(coastalRoadbed(ground, asphalt, mat("#9a9ba5")));
   for (const side of [-1, 1])
     for (let i = 0; i < 10; i++) {

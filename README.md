@@ -162,3 +162,7 @@ RECORD_INTERACTIVE_OCEAN=1 npm run test:browser -- tests/browser/ocean-interacti
 ```
 
 录屏中的小圆点是测试脚本添加的实际鼠标位置标记，不会出现在正式网页。真实 iPad / Safari 性能仍需硬件补验，Chromium 触屏模拟不替代真实设备测试。
+
+## 最终局部修复
+
+按旧截图恢复道口中央连续可见的“钢轨＋横向枕木”：保留原轨道尺寸、材质、间距和整套高度，降低局部遮挡面。海岸增加一整条弯曲、封闭的低多边形礁石，海洋模拟及其他交互继续保留。[前后对比、岸线近景、测试结果与实际文件清单](docs/final-polish/REPORT.md)。

@@ -3,14 +3,23 @@ export const coastGroundLevel = 0.25,
   coastRailTop = 0.57,
   coastCurb = 0.13;
 const stations = [
-  -2.4, -1.1, -0.95, -0.8, -0.65, 0.65, 0.8, 0.95, 1.1, 2.6, 3.9, 4.8, 6,
+  -2.4, -1.1, -0.95, -0.8, -0.65, -0.5, 0.5, 0.65, 0.8, 0.95, 1.1, 2.6, 3.9,
+  4.8, 6,
 ];
 export function coastRoadHeight(z: number) {
   const d = Math.max(0, Math.abs(z) - 0.65);
   const ramp = d < 0.45 ? (d * d) / 0.9 : d - 0.225;
-  return coastRailTop - 0.02 + Math.sign(z) * 0.055 * ramp;
+  const approach = coastRailTop - 0.02 + Math.sign(z) * 0.055 * ramp;
+  // Expose the existing complete track assembly. Sleepers stay on the .42
+  // ballast, with their original .415–.505 bounds; rails stay at .49–.57.
+  return T.MathUtils.lerp(
+    0.4,
+    approach,
+    T.MathUtils.clamp((Math.abs(z) - 0.5) / 0.15, 0, 1),
+  );
 }
 export function coastRoadSlope(z: number) {
+  if (Math.abs(z) > 0.5 && Math.abs(z) < 0.65) return Math.sign(z);
   return 0.055 * Math.min(1, Math.max(0, (Math.abs(z) - 0.65) / 0.45));
 }
 export const coastSidewalkHeight = (z: number) =>
