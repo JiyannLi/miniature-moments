@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+  <link rel="icon" href="data:," /><meta charset="UTF-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>Water material study</title
+  ><style>
+    body {
+      margin: 0;
+      background: #162b3b;
+      color: #e1ecee;
+      font: 13px sans-serif;
+    }
+    aside {
+      position: fixed;
+      z-index: 2;
+      top: 20px;
+      left: 20px;
+      background: #102438cc;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    a,
+    button {
+      color: inherit;
+    }
+    button {
+      background: #345;
+      border: 1px solid #789;
+      padding: 8px;
+      cursor: pointer;
+    }
+  </style>
+  <aside>
+    独立水体实验 · <a href="?mode=shader">轻量 Shader</a> /
+    <a href="?mode=physical">Physical + 动态法线</a> · <button>昼夜</button>
+  </aside>
+  <script type="module" src="/src/lab/water-lab.ts"></script>
+</html>

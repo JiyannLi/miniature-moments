@@ -28,7 +28,7 @@ try {
     manager.switch(n);
     environment.configure(n === 1);
     interaction.targets = manager.world.targets;
-    camera.reset(n === 1);
+    camera.fit(manager.world.root, n === 1);
     scene.updateMatrixWorld(true);
     ui.scene(n);
     ui.time(environment.target === 1, n === 1);
@@ -40,7 +40,7 @@ try {
       environment.target = 1 - environment.target;
       ui.time(environment.target === 1, manager.index === 1);
     },
-    () => camera.reset(manager.index === 1),
+    () => camera.reset(),
   );
   change(0);
   let last = performance.now(),
@@ -92,6 +92,8 @@ try {
       night: environment.target,
       rain: weather.level,
       zoom: camera.camera.zoom,
+      framing: camera.frameInfo(),
+      pixelRatio: view.renderer.getPixelRatio(),
       camera: camera.camera.position.toArray(),
     }),
   });

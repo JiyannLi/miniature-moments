@@ -81,10 +81,11 @@ export class WeatherSystem {
     for (let i = 0; i < this.rings.count; i++) {
       const s = this.seeds[i],
         phase = (time * (0.55 + this.level * 0.12) + s.phase) % 1;
+      const z = coast ? 2.4 + (s.z - 2.4) * 0.8 : s.z;
       this.dummy.position.set(
         coast ? s.x * 0.24 : s.x,
-        0.045,
-        coast ? 2.4 + (s.z - 2.4) * 0.8 : s.z,
+        coast ? 0.43 + z * 0.055 + 0.068 : 0.045,
+        z,
       );
       this.dummy.rotation.x = -Math.PI / 2;
       this.dummy.scale.setScalar(0.02 + phase * 0.2);

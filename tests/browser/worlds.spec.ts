@@ -24,6 +24,10 @@ test("双场景、实体交互、相机、天气、道口和资源生命周期",
   await expect.poll(async () => (await debug(page)).state.lights).toBe(false);
   await click(page, 0);
   await expect.poll(async () => (await debug(page)).state.doorOpen).toBe(true);
+  await expect
+    .poll(async () => (await debug(page)).state.doorAngle)
+    .toBeLessThan(-1.25);
+  await page.screenshot({ path: "docs/round2/konbini-open.png" });
   await click(page, 2);
   await expect.poll(async () => (await debug(page)).state.streetOn).toBe(false);
   await click(page, 3);
@@ -45,7 +49,7 @@ test("双场景、实体交互、相机、天气、道口和资源生命周期",
   expect((await debug(page)).night).toBe(0);
   await page.locator("#time").click();
   await page.waitForTimeout(1500);
-  await page.screenshot({ path: "docs/konbini-desktop.png" });
+  await page.screenshot({ path: "docs/round2/konbini-interactions.png" });
   await page.locator('[data-scene="1"]').click();
   await expect.poll(async () => (await debug(page)).scene).toBe(1);
   await click(page, 0);
@@ -57,10 +61,26 @@ test("双场景、实体交互、相机、天气、道口和资源生命周期",
   await click(page, 1);
   await expect(page.locator(".toast")).toContainText("请稍候");
   await expect
+    .poll(async () => (await debug(page)).state.crossing, { timeout: 60000 })
+    .toBe("passing");
+  expect(
+    (await debug(page)).state.barrierMinimum.every((y: number) => y > 0.9),
+  ).toBe(true);
+  expect((await debug(page)).state.angle).toBe(0);
+  await page.screenshot({ path: "docs/round2/coast-barriers-down.png" });
+  await expect
     .poll(async () => (await debug(page)).state.crossing, { timeout: 90000 })
     .toBe("idle");
   expect((await debug(page)).state.angle).toBe(Math.PI / 2);
-  await page.screenshot({ path: "docs/coast-desktop.png" });
+  await page.screenshot({ path: "docs/round2/coast-after-crossing.png" });
+  expect(
+    (await debug(page)).state.barrierTips.every((p: number[]) => p[1] > 4.8),
+  ).toBe(true);
+  await page.locator("#time").click();
+  await expect
+    .poll(async () => (await debug(page)).state.water.night, { timeout: 15000 })
+    .toBeGreaterThan(0.94);
+  await page.screenshot({ path: "docs/round2/coast-night.png" });
   const memory = (await debug(page)).renderer.memory;
   for (let i = 0; i < 5; i++) {
     await page.locator('[data-scene="0"]').click();
@@ -131,6 +151,6 @@ test("移动端触摸点击、单指旋转、双指缩放及界面", async ({ br
   await page.locator('[data-scene="1"]').tap();
   await page.locator('[data-rain="0"]').tap();
   expect((await debug(page)).rain).toBe(0);
-  await page.screenshot({ path: "docs/coast-mobile.png" });
+  await page.screenshot({ path: "docs/round2/coast-phone.png" });
   await context.close();
 });

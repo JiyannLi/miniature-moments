@@ -1,4 +1,4 @@
-# Rainy Miniature Worlds
+# Miniature Moments
 
 两个可以自由探索的 Three.js 微缩沙盘：**Rainy Konbini / 雨夜便利店** 与 **Coastal Tram / 海岸电车**。
 
@@ -27,19 +27,19 @@ npm run format    # 格式化源码
 
 ## 操作
 
-| 操作     | 桌面            | 触屏     |
-| -------- | --------------- | -------- |
-| 旋转     | 拖动画面        | 单指拖动 |
-| 缩放     | 滚轮            | 双指缩放 |
-| 交互     | 点击物件        | 轻触物件 |
-| 重置     | 底部按钮 / R    | 底部按钮 |
-| 切换场景 | 左侧卡片 / 1、2 | 顶部卡片 |
+| 操作     | 桌面                | 触屏         |
+| -------- | ------------------- | ------------ |
+| 旋转     | 拖动画面            | 单指拖动     |
+| 缩放     | 滚轮                | 双指缩放     |
+| 交互     | 点击物件            | 轻触物件     |
+| 重置     | 底部按钮 / R        | 底部按钮     |
+| 切换场景 | 底部场景按钮 / 1、2 | 底部场景按钮 |
 
 相机禁止平移，限制俯仰角与缩放范围，以避免穿地和进入建筑。拖动超过 6 CSS 像素或发生多指操作后不执行点击交互。悬停交互物件有淡色边框与提示。
 
 **雨夜便利店：** 点招牌开关室内灯光；点门开关店门；点路灯切换照明；点售货机后面的小猫触发跳跃。左侧有住宅与台阶，前方是人行道、斑马线和湿润街道；店内有独立货架、商品与收银台。
 
-**海岸电车：** 点道口信号启动完整演示。状态依次为 `idle → warning → lowering → passing → raising → idle`；忙碌时拒绝新的请求。警灯交替闪烁，栏杆落下后电车才通过，最后抬杆并恢复展示位置。点车厢切换车灯和窗边乘客效果。中央坡道连接横向铁路与海岸，住宅、石墙、樱花位于两侧，远处是海面与落日。
+**海岸电车：** 点道口信号启动完整演示。状态依次为 `idle → warning → lowering → passing → raising → idle`；忙碌时拒绝新的请求。警灯交替闪烁，栏杆落下后电车才通过，电车完整离开道路后抬杆，并停在另一侧；下一次演示沿相反方向行驶。点车厢切换车灯和窗边乘客效果。中央坡道连接横向铁路与海岸，住宅、石墙、樱花位于两侧，后方是有厚度的微缩海面；黄昏通过光色表现，不设置太阳圆盘。
 
 按最新要求，樱花树保持静态，不包含飘落花瓣动画。
 
@@ -52,7 +52,7 @@ src/
   main.ts                    入口与帧循环
   core/
     Renderer.ts              WebGL、DPR 上限、性能降级
-    CameraController.ts      正交相机与 OrbitControls
+    CameraController.ts      包围盒自适应取景与 OrbitControls
     SceneManager.ts          切换、静态合批、GPU 资源释放
     Environment.ts           昼夜光照平滑过渡
     WeatherSystem.ts         共享雨线与实例化涟漪
@@ -62,7 +62,11 @@ src/
     types.ts                 场景生命周期接口
   scenes/
     SceneA.ts                便利店几何、门动画与灯光
+    Storefront.ts            共用尺寸的门框、固定窗和门扇
+    CrossingArm.ts           两侧独立的栏杆枢轴
     SceneB.ts                海岸几何、电车与波浪
+  water/                     波场、分层透明水体、海床与岩石
+  lab/water-lab.ts            两种水体方案的隔离原型
   ui/UI.ts                   界面和操作说明
   style.css                  响应式布局
 ```
@@ -79,7 +83,7 @@ src/
 
 ## 图片与验证说明
 
-`docs/konbini-desktop.png`、`docs/coast-desktop.png`、`docs/coast-mobile.png` 是实际浏览器生成的 WebGL 截图。参考图片中的构图被压缩为完整沙盘；画风为简化 Low-poly，未追求照片级复原。
+`docs/round2/konbini-wide.png`、`docs/round2/coast-wide.png`、`docs/round2/coast-phone.png` 是实际浏览器生成的 WebGL 截图。参考图片中的构图被压缩为完整沙盘；画风为简化 Low-poly，未追求照片级复原。
 
 浏览器测试覆盖实际 Raycaster 点击、相机拖动防误触、昼夜雨量切换、道口完整动画、连续点击锁定、触摸旋转/缩放，以及反复切换后的 GPU 资源数量。单元测试独立验证状态序列和栏杆未落下时禁止通车。
 
@@ -94,3 +98,13 @@ src/
 首次部署若自动启用 Pages 被 GitHub 权限策略拒绝，请进入仓库 **Settings → Pages → Build and deployment → Source**，选择 **GitHub Actions**。然后在 **Actions → Deploy GitHub Pages** 中重新运行工作流。
 
 预期访问地址：`https://jiyannli.github.io/miniature-moments/`。只有工作流部署成功后此地址才表示可用。
+
+## 第二轮修复与沉浸式界面
+
+本轮在原场景上修复了店门与窗框重叠、门前障碍物侵入开门范围、道口栏杆反向旋入地下，以及电车周期边界瞬移。门扇与两侧栏杆的完整扫掠范围有几何测试。太阳圆盘已移除，黄昏/夜晚继续通过平滑光色变化呈现。
+
+界面改为全视口沙盘与悬浮控件，正交相机按模型包围盒和屏幕比例取景。水体包含动态表面、透明侧壁、可见海床和实例化岩石。樱花依然静态，没有自动运镜。
+
+调研与水体方案比较见 [docs/round2/RESEARCH.md](docs/round2/RESEARCH.md)，本轮关键截图和验收记录见 [docs/round2/REPORT.md](docs/round2/REPORT.md)。水体隔离原型可以访问开发/预览服务器下的 `water-lab.html?mode=shader` 或 `?mode=physical`。
+
+水体 Shader 使用近似 Fresnel 与天空光色，不提供真实建筑倒影或物理折射。iPad 横竖屏检查为 Chromium 触屏模拟，不能替代真实 Safari 硬件测试。

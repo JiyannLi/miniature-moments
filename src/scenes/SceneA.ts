@@ -1,4 +1,5 @@
 import * as T from "three";
+import { createStorefront, storefront } from "./Storefront";
 import {
   base,
   box,
@@ -59,20 +60,9 @@ export function createKonbini(notify: (s: string) => void): World {
     side: T.DoubleSide,
     depthWrite: false,
   });
-  for (const x of [-1.65, -0.3, 1.1, 2.4, 3.65])
-    box(root, 0.07, 2.2, 0.09, x, 1.42, -0.94, steel);
-  for (const x of [-0.98, 0.4, 3.02]) {
-    box(root, 1.24, 1.8, 0.035, x, 1.48, -0.94, windowMat);
-    box(root, 1.22, 0.3, 0.09, x, 0.5, -0.94, steel);
-  }
-  box(root, 5.6, 0.08, 0.1, 1, 2.51, -0.94, steel);
-  const door = new T.Group();
-  door.position.set(1.17, 0.36, -0.91);
-  root.add(door);
-  box(door, 1.15, 2.1, 0.045, 0.575, 1.05, 0, windowMat);
-  for (const x of [0, 1.15]) box(door, 0.055, 2.1, 0.07, x, 1.05, 0, steel);
-  box(door, 1.15, 0.06, 0.07, 0.575, 2.1, 0, steel);
-  box(door, 0.045, 0.4, 0.08, 0.95, 1, 0, mat("#c2c5b9"));
+  const facade = createStorefront(steel, windowMat, mat("#c2c5b9"));
+  root.add(facade.root);
+  const door = facade.leaf;
   let doorOpen = false;
   targets.push({
     object: door,
@@ -179,7 +169,13 @@ export function createKonbini(notify: (s: string) => void): World {
   tree(root, -3.1, 0.25, -3.3, false, 0.85);
   tree(root, 5.65, 0.25, -3.9, false, 1.15);
   for (let i = 0; i < 6; i++) {
-    box(root, 0.13, 0.6, 0.13, -0.8 + i * 1.3, 0.45, 0.04, mat("#baa56b"));
+    const x = -0.8 + i * 1.3;
+    if (
+      x > storefront.hingeX - 0.15 &&
+      x < storefront.hingeX + storefront.leafWidth + 0.15
+    )
+      continue;
+    box(root, 0.13, 0.6, 0.13, x, 0.45, 0.04, mat("#baa56b"));
   }
   fence(root, 5.1, 0, 2.1, false);
   const p1 = pole(root, -2.9, 0.1),
@@ -269,11 +265,12 @@ export function createKonbini(notify: (s: string) => void): World {
       lights,
       streetOn,
       jump,
+      doorBounds: new T.Box3().setFromObject(door).min.toArray(),
     }),
     update(dt, time) {
       door.rotation.y = T.MathUtils.damp(
         door.rotation.y,
-        doorOpen ? -1.3 : 0,
+        doorOpen ? -storefront.maxAngle : 0,
         6,
         dt,
       );

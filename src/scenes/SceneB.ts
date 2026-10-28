@@ -1,6 +1,5 @@
 import * as T from "three";
 import {
-  base,
   box,
   cylinder,
   mat,
@@ -12,31 +11,24 @@ import {
   label,
   glowPatch,
 } from "../core/geometry";
+import { CoastalWater } from "../water/CoastalWater";
+import { createCrossingArm } from "./CrossingArm";
 import { Crossing } from "../core/Crossing";
 import type { World, Target } from "../core/types";
 export function createCoast(notify: (s: string) => void): World {
   const root = new T.Group(),
     targets: Target[] = [];
-  base(root, "#3e455a");
+  // Land base stops at the seawall: it must not occlude the water cross-section.
+  box(root, 14, 0.85, 8.4, 0, -0.53, 1.8, mat("#3e455a"));
+  box(root, 14.12, 0.12, 8.4, 0, -0.12, 1.8, mat("#71838b"));
   const ground = mat("#657b72"),
     asphalt = mat("#4d5b72", 0.2),
     steel = mat("#394454"),
     cream = mat("#ddcdae");
   // Coast is lower than the street. The road slopes continuously to the shore.
   box(root, 14, 0.34, 8.4, 0, 0.08, 1.8, ground);
-  const seaGeo = new T.PlaneGeometry(14, 3.6, 64, 20);
-  seaGeo.rotateX(-Math.PI / 2);
-  const sea = new T.Mesh(
-    seaGeo,
-    new T.MeshStandardMaterial({
-      color: "#6682a0",
-      metalness: 0.4,
-      roughness: 0.24,
-    }),
-  );
-  sea.position.set(0, 0.04, -4.2);
-  root.add(sea);
-  const seaOriginal = seaGeo.attributes.position.array.slice();
+  const water = new CoastalWater();
+  root.add(water.root);
   const slope = 0.055;
   const roadY = (z: number) => 0.43 + z * slope;
   const road = box(root, 3.5, 0.12, 8.4, 0, 0.43, 1.8, asphalt);
@@ -157,7 +149,7 @@ export function createCoast(notify: (s: string) => void): World {
     root.add(o);
   }
   const tram = new T.Group();
-  tram.position.set(2.5, 0.59, 0);
+  tram.position.set(4.7, 0.59, 0);
   root.add(tram);
   const green = mat("#487c71", 0.45);
   box(tram, 4.2, 1.25, 1.13, 0, 0.95, 0, green);
@@ -257,21 +249,8 @@ export function createCoast(notify: (s: string) => void): World {
       signal.add(light);
       signal.userData.probe = light;
     }
-    const arm = new T.Group();
-    arm.position.set(0, 0.52, 0);
-    signal.add(arm);
-    arms.push(arm);
-    for (let i = 0; i < 9; i++)
-      box(
-        arm,
-        0.48,
-        0.095,
-        0.095,
-        -side * (i * 0.46 + 0.2),
-        0,
-        0,
-        i % 2 ? steel : yellow,
-      );
+    const arm = createCrossingArm(signal, side, steel, yellow);
+    arms.push(arm.pivot);
     targets.push({
       object: signal,
       name: "道口信号 · 演示电车通行",
@@ -291,6 +270,8 @@ export function createCoast(notify: (s: string) => void): World {
     wire(root, a, b, 0.17);
   }
   wire(root, new T.Vector3(-6.8, 3.16, 0), new T.Vector3(6.8, 3.16, 0), 0.1);
+  const streetLights: T.PointLight[] = [];
+  let night = 0;
   const lampMat = mat("#ffe6b4", 0.4, "#e7b777");
   for (const side of [-1, 1]) {
     const x = side * 2.6,
@@ -302,6 +283,7 @@ export function createCoast(notify: (s: string) => void): World {
     const light = new T.PointLight("#f7be8b", 10, 6);
     light.position.set(x - side * 0.5, y + 3.3, z);
     root.add(light);
+    streetLights.push(light);
     glowPatch(
       root,
       x - side * 0.5,
@@ -312,24 +294,6 @@ export function createCoast(notify: (s: string) => void): World {
       0.51,
     ).rotation.x = -slope;
   }
-  const sun = new T.Mesh(
-    new T.CircleGeometry(0.7, 48),
-    new T.MeshBasicMaterial({ color: "#ffbc8a" }),
-  );
-  sun.position.set(-0.6, 0.8, -5.7);
-  root.add(sun);
-  glowPatch(root, -0.6, -5.7, 0.6, 2.9, "#edb497", 0.08);
-  for (let i = 0; i < 20; i++)
-    box(
-      root,
-      0.5 + (i % 4) * 0.25,
-      0.018,
-      0.025,
-      Math.sin(i * 2) * 5,
-      0.1,
-      -5.7 + i * 0.16,
-      mat("#93a4b9", 0.3),
-    );
   label(
     root,
     "海岸線  /  02",
@@ -349,20 +313,26 @@ export function createCoast(notify: (s: string) => void): World {
       angle: crossing.angle,
       tramX: crossing.tramX,
       carLight,
+      water: water.inspect(),
+      barrierMinimum: arms.map((a) => new T.Box3().setFromObject(a).min.y),
+      barrierTips: arms.map((a) =>
+        a.children[a.children.length - 1]
+          .getWorldPosition(new T.Vector3())
+          .toArray(),
+      ),
     }),
     update(dt, time) {
       crossing.update(dt);
       tram.position.x = crossing.tramX;
-      tram.visible =
-        crossing.state !== "passing" || Math.abs(crossing.tramX) < 8;
+      tram.visible = true;
       lit.emissiveIntensity = T.MathUtils.damp(
         lit.emissiveIntensity,
-        carLight ? 1 : 0.02,
+        carLight ? 0.55 + night * 0.55 : 0.02,
         5,
         dt,
       );
       arms.forEach(
-        (arm, i) => (arm.rotation.z = (i === 0 ? -1 : 1) * crossing.angle),
+        (arm, i) => (arm.rotation.z = (i === 0 ? 1 : -1) * crossing.angle),
       );
       redMaterials.forEach(
         (m, i) =>
@@ -378,21 +348,13 @@ export function createCoast(notify: (s: string) => void): World {
         if (lastState === "passing") notify("海岸线电车正在通过。");
         if (lastState === "idle") notify("道口恢复通行。");
       }
-      const pos = seaGeo.attributes.position;
-      for (let i = 0; i < pos.count; i++)
-        pos.setY(
-          i,
-          seaOriginal[i * 3 + 1] +
-            Math.sin(pos.getX(i) * 3 + time) * 0.025 +
-            Math.cos(pos.getZ(i) * 4 + time * 0.8) * 0.018,
-        );
-      pos.needsUpdate = true;
+      water.update(time);
     },
     setNight(n) {
-      sun.scale.setScalar(1 - n * 0.35);
-      (sun.material as T.MeshBasicMaterial).color
-        .set("#ffbc8a")
-        .lerp(new T.Color("#d8deec"), n);
+      night = n;
+      water.setNight(n);
+      streetLights.forEach((l) => (l.intensity = 8 + n * 5));
+      lampMat.emissiveIntensity = 0.65 + n * 0.45;
       asphalt.color.set("#4d5b72").lerp(new T.Color("#303d59"), n);
     },
   };
