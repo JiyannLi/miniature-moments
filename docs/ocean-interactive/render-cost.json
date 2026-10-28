@@ -1,0 +1,126 @@
+[
+  {
+    "scene": 0,
+    "renderer": {
+      "memory": {
+        "geometries": 186,
+        "textures": 9
+      },
+      "render": {
+        "frame": 8,
+        "calls": 194,
+        "triangles": 13010,
+        "points": 0,
+        "lines": 873
+      }
+    },
+    "pixelRatio": 1
+  },
+  {
+    "scene": 1,
+    "renderer": {
+      "memory": {
+        "geometries": 256,
+        "textures": 11
+      },
+      "render": {
+        "frame": 13,
+        "calls": 259,
+        "triangles": 32360,
+        "points": 0,
+        "lines": 897
+      }
+    },
+    "pixelRatio": 1,
+    "water": {
+      "level": 0.12,
+      "bottom": -0.78,
+      "time": 0.16170000000018558,
+      "phase": 0.18671999999999975,
+      "dimensions": {
+        "width": 14,
+        "depth": 6.6,
+        "centerZ": -5.7
+      },
+      "ocean": {
+        "mode": "auto",
+        "preset": "breeze",
+        "weather": "rain",
+        "rain": 1,
+        "target": {
+          "waveHeight": 0.135,
+          "waveSpeed": 0.8,
+          "waveLength": 1.12,
+          "choppiness": 0.32,
+          "rippleStrength": 0.55,
+          "transparency": 0.5449999999999999,
+          "glassiness": 0.56,
+          "reflection": 0.328,
+          "interactionStrength": 1,
+          "ripplePropagation": 1.25,
+          "rippleDamping": 1.1
+        },
+        "current": {
+          "waveHeight": 0.135,
+          "waveSpeed": 0.8,
+          "waveLength": 1.12,
+          "choppiness": 0.32,
+          "rippleStrength": 0.43955022222560486,
+          "transparency": 0.5604629688884153,
+          "glassiness": 0.56,
+          "reflection": 0.3598095359990258,
+          "interactionStrength": 1,
+          "ripplePropagation": 1.25,
+          "rippleDamping": 1.1
+        }
+      },
+      "night": 0,
+      "rocks": 8,
+      "maxWaveHeight": 0.24,
+      "ripples": {
+        "columns": 96,
+        "rows": 48,
+        "peak": 0,
+        "energy": 0,
+        "injections": 0,
+        "simulationTime": 0.2333333333333333,
+        "revision": 0
+      },
+      "debug": false,
+      "segments": {
+        "x": 128,
+        "z": 64
+      },
+      "probes": [
+        {
+          "x": -3,
+          "z": -1,
+          "displacement": {
+            "x": 0.004222971910289975,
+            "y": 0.11615204397609918,
+            "z": 0.005972082030580853
+          }
+        },
+        {
+          "x": 0,
+          "z": 0,
+          "displacement": {
+            "x": 0.016720448875167535,
+            "y": -0.03272997605819447,
+            "z": 0.01758517020227874
+          }
+        },
+        {
+          "x": 2,
+          "z": 1,
+          "displacement": {
+            "x": -0.02765837979233373,
+            "y": -0.031674203295920765,
+            "z": 0.003105708347957868
+          }
+        }
+      ],
+      "openShore": true
+    }
+  }
+]

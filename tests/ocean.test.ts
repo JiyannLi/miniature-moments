@@ -21,7 +21,7 @@ test("Ocean 参数钳制且拒绝非有限值，调节进入手动", () => {
 });
 test("手动波浪不被天气覆盖，返回自动渐变且雨量不等于波高", () => {
   const o = new OceanController();
-  o.setParameter("waveHeight", 0.09);
+  o.setParameter("waveHeight", 0.22);
   o.setWeather("sunny", 0);
   const before = o.target();
   o.setWeather("rain", 2);
@@ -54,7 +54,7 @@ test("预设转换连续有界，不瞬间重置已应用的波浪", () => {
       );
     }
   }
-  assert.ok(o.current.waveHeight > 0.1);
+  assert.ok(o.current.waveHeight > 0.2);
 });
 test("所有滑块极值下 Gerstner 不翻转、不越界、不穿海床，岸边收敛", () => {
   const o = new OceanController();
@@ -68,7 +68,7 @@ test("所有滑块极值下 Gerstner 不翻转、不越界、不穿海床，岸�
     for (let x = -7; x <= 7; x += 0.35)
       for (let z = -3.3; z <= 3.3; z += 0.22) {
         const p = sampleGerstner(x, z, t, values);
-        assert.ok(Math.abs(p.y) <= 0.1200001);
+        assert.ok(Math.abs(p.y) <= 0.2400001);
         assert.ok(x + p.x >= -7 - 1e-6 && x + p.x <= 7 + 1e-6);
         assert.ok(z + p.z >= -3.3 - 1e-6 && z + p.z <= 3.3 + 1e-6);
         const px = sampleGerstner(x + e, z, t, values),

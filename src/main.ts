@@ -9,8 +9,10 @@ import { Environment } from "./core/Environment";
 import { WeatherSystem } from "./core/WeatherSystem";
 import { SceneManager } from "./core/SceneManager";
 import { InteractionManager } from "./core/InteractionManager";
+import { OceanInteraction } from "./ocean/OceanInteraction";
 const ui = new UI();
 try {
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const view = new Renderer(ui.host),
     camera = new CameraController(view.canvas),
     scene = new T.Scene(),
@@ -18,6 +20,15 @@ try {
     weather = new WeatherSystem(view.low),
     manager = new SceneManager(scene, ui.notify),
     interaction = new InteractionManager(view.canvas, camera.camera, ui.hint);
+  const oceanInteraction = new OceanInteraction(
+    view.canvas,
+    camera.camera,
+    camera.controls,
+    reduced,
+  );
+  window.addEventListener("pagehide", () => oceanInteraction.dispose(), {
+    once: true,
+  });
   scene.add(weather.root);
   new OceanPanel(manager.ocean);
   function setCondition(c: WeatherCondition) {
@@ -40,6 +51,7 @@ try {
     camera.fit(manager.world.root, n === 1);
     environment.frame(manager.world.root);
     scene.updateMatrixWorld(true);
+    oceanInteraction.setWater(manager.world.water);
     ui.scene(n);
     ui.time(environment.target === 1, n === 1);
   }
@@ -60,13 +72,13 @@ try {
   change(0);
   let last = performance.now(),
     time = 0;
-  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   view.renderer.setAnimationLoop((now) => {
     const dt = Math.min((now - last) / 1000, 0.1);
     last = now;
     if (document.hidden) return;
     time += dt;
     camera.controls.update();
+    oceanInteraction.update();
     environment.update(dt);
     document.body.style.background = (scene.background as T.Color).getStyle();
     manager.world.setNight(environment.night);
@@ -112,6 +124,7 @@ try {
       rain: weather.level,
       weather: weather.condition,
       ocean: manager.ocean.snapshot(),
+      oceanInteraction: oceanInteraction.inspect(),
       zoom: camera.camera.zoom,
       framing: camera.frameInfo(),
       pixelRatio: view.renderer.getPixelRatio(),

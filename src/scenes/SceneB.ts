@@ -330,6 +330,8 @@ export function createCoast(
   return {
     root,
     targets,
+    water,
+    dispose: () => water.dispose(),
     inspect: () => ({
       dressing: dressing.userData.layout,
       crossing: crossing.state,

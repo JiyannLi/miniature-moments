@@ -19,6 +19,10 @@
       background: #102438cc;
       padding: 15px;
       border-radius: 8px;
+      max-height: calc(100dvh - 70px);
+      max-width: calc(100vw - 80px);
+      width: 230px;
+      overflow: auto;
     }
     a,
     button {
@@ -30,10 +34,31 @@
       padding: 8px;
       cursor: pointer;
     }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-size: 11px;
+    }
+    label input[type="range"] {
+      display: block;
+      width: 100%;
+      accent-color: #adc5ba;
+    }
+    output {
+      float: right;
+      color: #b8cbbd;
+    }
   </style>
   <aside>
     独立水体实验 · <a href="?mode=shader">轻量 Shader</a> /
-    <a href="?mode=physical">Physical + 动态法线</a> · <button>昼夜</button>
+    <a href="?mode=physical">Physical</a> · <button id="lab-night">昼夜</button>
+    <label
+      ><input type="checkbox" id="wave-debug" /> Wave Debug（不透明）</label
+    >
+    <label><input type="checkbox" id="lab-base" checked /> 基础海浪</label>
+    <p>移动鼠标扰动水面；拖动旋转、滚轮缩放。</p>
+    <a href="?debug=1&low=1">低视角调试</a> / <a href="?bed=deep">加深对照</a>
+    <div id="lab-controls"></div>
   </aside>
   <script type="module" src="/src/lab/water-lab.ts"></script>
 </html>

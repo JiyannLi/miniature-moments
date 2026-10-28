@@ -13,6 +13,9 @@ const labels: Record<OceanKey, [string, string]> = {
   transparency: ["通透度", "Transparency"],
   glassiness: ["玻璃质感", "Glassiness"],
   reflection: ["反射", "Reflection"],
+  interactionStrength: ["交互强度", "Interaction strength"],
+  ripplePropagation: ["传播速度", "Ripple propagation"],
+  rippleDamping: ["衰减速度", "Ripple damping"],
 };
 export class OceanPanel {
   private panel = document.createElement("section");
@@ -34,7 +37,7 @@ export class OceanPanel {
       })
       .join(
         "",
-      )}</div><p class="ocean-note">自动模式随天气调节细涟漪与光泽；拖动滑块进入手动。风浪与降雨强度独立。</p>`;
+      )}</div><p class="ocean-note">在海面移动鼠标，涟漪会传播并逐渐消散；按住拖动仍可旋转。拖动滑块进入手动，风浪与降雨强度独立。</p>`;
     document.querySelector("#app")!.append(this.panel);
     this.toggle.onclick = () =>
       this.open(!this.panel.classList.contains("is-open"));

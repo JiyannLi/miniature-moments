@@ -5,6 +5,7 @@ import { CoastalWater } from "../src/water/CoastalWater";
 import { waterLevel, waterBottom } from "../src/water/wave";
 import { sampleGerstner } from "../src/ocean/Gerstner";
 import { disposeTree } from "../src/core/SceneManager";
+import { seabedHeight } from "../src/water/Seabed";
 test("水面与四侧墙在全部边界采样共用水位与波场", () => {
   const w = new CoastalWater();
   const top = w.surface.geometry.attributes.position,
@@ -46,6 +47,49 @@ test("水面与四侧墙在全部边界采样共用水位与波场", () => {
     assert.ok(found);
   }
   assert.ok(waterLevel - waterBottom > 0.8);
+  disposeTree(w.root);
+});
+
+test("交互高度真实叠加位移，极值不穿海床且外边界与侧壁连续", () => {
+  const w = new CoastalWater({ depth: 6.6, centerZ: -5.7 });
+  w.controller.setParameter("waveHeight", 0.24);
+  w.controller.setParameter("waveLength", 0.65);
+  w.controller.setParameter("choppiness", 0.65);
+  for (let i = 0; i < 30; i++) w.update(i / 10, 0.1);
+  const before = w.sampleDisplacement(0, 0).y;
+  w.inject(0, 0, 0.1);
+  assert.ok(w.sampleDisplacement(0, 0).y > before + 0.07);
+  for (let t = 0; t < 60; t++) {
+    if (t < 20) w.inject(Math.sin(t) * 5, Math.cos(t) * 2.5, 0.1);
+    w.update(3 + t / 60, 1 / 60);
+    for (let x = -7; x <= 7; x += 0.35)
+      for (let z = -3.3; z <= 3.3; z += 0.22) {
+        const y = waterLevel + w.sampleDisplacement(x, z).y;
+        assert.ok(y > seabedHeight(x, z, 3.3) + 0.05);
+        assert.ok(y < 0.53);
+      }
+    for (const [x, z] of [
+      [-7, 0],
+      [7, 0],
+      [0, -3.3],
+      [0, 3.3],
+    ]) {
+      const base = sampleGerstner(
+        x,
+        z,
+        w.uniforms.uTime.value,
+        w.controller.current,
+        7,
+        3.3,
+      );
+      assert.ok(Math.abs(w.sampleDisplacement(x, z).y - base.y) < 1e-7);
+    }
+  }
+  let disposed = 0;
+  w.uniforms.uHeightField.value!.addEventListener("dispose", () => disposed++);
+  w.dispose();
+  w.dispose();
+  assert.equal(disposed, 1);
   disposeTree(w.root);
 });
 test("水面与侧壁不写透明深度；昼夜和时间驱动同一组 uniform", () => {

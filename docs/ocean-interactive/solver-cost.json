@@ -1,0 +1,23 @@
+{
+  "environment": "Node.js isolated CPU solver, not a browser/GPU FPS benchmark",
+  "results": [
+    {
+      "columns": 96,
+      "rows": 48,
+      "steps": 1200,
+      "elapsedMs": 291.941556,
+      "msPerSimulationStep": 0.24328463,
+      "cpuArrayBytes": 55296,
+      "textureBytes": 18432
+    },
+    {
+      "columns": 64,
+      "rows": 32,
+      "steps": 1200,
+      "elapsedMs": 149.708842,
+      "msPerSimulationStep": 0.12475736833333334,
+      "cpuArrayBytes": 24576,
+      "textureBytes": 8192
+    }
+  ]
+}

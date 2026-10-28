@@ -45,7 +45,9 @@ npm run format    # 格式化源码
 
 两个场景均有小雨 / 中雨 / 大雨。雨量影响雨线数量、透明度、速度和地面涟漪数量。便利店支持白天 / 夜晚；海岸支持黄昏 / 夜晚，光照平滑过渡。
 
-4.0 增加晴天 / 阴天 / 雨天天气选择；点击雨量按钮会恢复雨天。Coastal Tram 底部的“海洋”按钮展开八参数面板，默认 **Auto / Breeze**。三个预设 Calm / Breeze / Windy 平滑切换；拖动任意滑块进入 Manual，天气不会覆盖手动值，返回 Auto 后平滑恢复天气联动。海洋设置在本次页面会话的场景切换间保留，刷新后恢复默认。
+提供晴天 / 阴天 / 雨天天气选择；点击雨量按钮会恢复雨天。Coastal Tram 底部的“海洋”按钮展开十一参数面板，默认 **Auto / Breeze**。三个预设 Calm / Breeze / Windy 平滑切换；拖动任意滑块进入 Manual，天气不会覆盖手动值，返回 Auto 后平滑恢复天气联动。海洋设置在本次页面会话的场景切换间保留，刷新后恢复默认。
+
+鼠标在海面普通移动即可扰动水体，无需点击或按住；鼠标停下或离开后，已有水波继续传播并逐渐衰减。新增 Interaction Strength / Ripple Propagation / Ripple Damping 分别控制扰动强度、传播速度和衰减速度。按住拖动、滚轮缩放和镜头惯性期间暂停新扰动；触屏继续专用于旋转/缩放。
 
 ## 结构
 
@@ -67,7 +69,7 @@ src/
     Storefront.ts            共用尺寸的门框、固定窗和门扇
     CrossingArm.ts           两侧独立的栏杆枢轴
     SceneB.ts                海岸几何、电车与波浪
-  ocean/                     海况控制器、安全范围、CPU/GPU 共用 Gerstner 模型
+  ocean/                     海况控制器、Gerstner、二维高度场、鼠标轨迹与拾取
   water/                     分层透明水体、海床与岩石
   props/                     程序化生活道具、按材质合批、场景布置
   lab/water-lab.ts            两种水体方案的隔离原型
@@ -87,7 +89,7 @@ src/
 
 ## 图片与验证说明
 
-最新截图、动态海浪录像、参数和验收结果见 [4.0 交付报告](docs/v4/REPORT.md)，参考访问与许可证核查见 [4.0 调研](docs/v4/RESEARCH.md)。
+最新交互海洋截图、动态录像、参数与验收结果见 [交互海洋报告](docs/ocean-interactive/REPORT.md)。此前的场景扩建和生活细节见 [4.0 交付报告](docs/v4/REPORT.md)，参考访问与许可证核查见各轮调研文档。
 
 `docs/round2/konbini-wide.png`、`docs/round2/coast-wide.png`、`docs/round2/coast-phone.png` 是实际浏览器生成的 WebGL 截图。参考图片中的构图被压缩为完整沙盘；画风为简化 Low-poly，未追求照片级复原。
 
@@ -142,3 +144,21 @@ RECORD_OCEAN_VIDEO=1 npm run test:browser -- tests/browser/v4.spec.ts --grep Ger
 ```
 
 原 GitHub Pages 工作流继续负责发布。测试截图和视频仅作为仓库文档，不打包到网页运行资源中。
+
+## 交互式动态海洋
+
+海面现在融合三组基础 Gerstner 波与二维阻尼高度场，顶点真实起伏，鼠标移动产生局部峰谷并向周围传播。桌面采用 96×48 高度场 / 128×64 水面分段，触屏降低为 64×32 / 96×48。CPU 固定步长求解，GPU 采样高度纹理并根据总位移计算法线，不额外渲染模拟或反射场景。波高、海床地形和材质反馈增强，水面/侧壁继续共用边界位移。
+
+本轮保留铁轨修复，并增加实际人行道上下表面的实体支撑检查。便利店、道口状态机、轨道模型和相机控制器未修改；网页只调整海洋面板的最大高度，保留整体布局。
+
+独立调试页：开发/生产预览下打开 `water-lab.html?debug=1&low=1`，可切换不透明 Wave Debug，并取消“基础海浪”只观察鼠标波。`?bed=deep` 提供加深对照；正式场景保留原底座高度。技术诊断、许可与取舍见 [设计](docs/ocean-interactive/DESIGN.md)、[调研](docs/ocean-interactive/RESEARCH.md)和[交付报告](docs/ocean-interactive/REPORT.md)。
+
+```bash
+npm test
+npm run build
+npm run test:browser
+# 可选：安装 Playwright FFmpeg 后录制原型和正式场景
+RECORD_INTERACTIVE_OCEAN=1 npm run test:browser -- tests/browser/ocean-interactive.spec.ts
+```
+
+录屏中的小圆点是测试脚本添加的实际鼠标位置标记，不会出现在正式网页。真实 iPad / Safari 性能仍需硬件补验，Chromium 触屏模拟不替代真实设备测试。

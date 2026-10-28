@@ -16,9 +16,7 @@ async function drag(p: Page, dx: number, dy: number, steps = 10, delay = 0) {
   await p.mouse.up();
   await p.mouse.move(2, 2);
 }
-test("Ocean Controls 八参数、预设、模式、天气与切换持久性", async ({
-  page,
-}) => {
+test("Ocean Controls 参数、预设、模式、天气与切换持久性", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => {
@@ -30,7 +28,7 @@ test("Ocean Controls 八参数、预设、模式、天气与切换持久性", as
   expect((await debug(page)).ocean.preset).toBe("breeze");
   expect((await debug(page)).state.water.dimensions.depth).toBe(6.6);
   const extrema = {
-    waveHeight: 0.12,
+    waveHeight: 0.24,
     waveSpeed: 1.6,
     waveLength: 1.8,
     choppiness: 0.65,
@@ -57,7 +55,7 @@ test("Ocean Controls 八参数、预设、模式、天气与切换持久性", as
   await expect
     .poll(async () => (await debug(page)).state.water.night, { timeout: 15000 })
     .toBeGreaterThan(0.94);
-  expect((await debug(page)).ocean.target.waveHeight).toBe(0.12);
+  expect((await debug(page)).ocean.target.waveHeight).toBe(0.24);
   await page.locator('button[data-scene="0"]').click();
   await expect(page.locator("#ocean-panel")).toBeHidden();
   await page.locator('button[data-scene="1"]').click();
@@ -66,9 +64,9 @@ test("Ocean Controls 八参数、预设、模式、天气与切换持久性", as
   await page.locator("#ocean-toggle").click();
   await page.locator('[data-ocean-mode="auto"]').click();
   for (const [preset, height] of [
-    ["calm", 0.027],
-    ["breeze", 0.067],
-    ["windy", 0.105],
+    ["calm", 0.055],
+    ["breeze", 0.135],
+    ["windy", 0.205],
   ] as const) {
     await page.locator(`[data-ocean-preset="${preset}"]`).click();
     await expect
@@ -195,7 +193,7 @@ test("Gerstner 极值、慢转快转、远近、晴雨夜切换和状态连续",
     .poll(async () => (await debug(page)).state.water.night, { timeout: 15000 })
     .toBeGreaterThan(0.94);
   await page.screenshot({ path: "docs/v4/ocean-night.png" });
-  expect((await debug(page)).ocean.target.waveHeight).toBe(0.12);
+  expect((await debug(page)).ocean.target.waveHeight).toBe(0.24);
   expect((await debug(page)).ocean.target.choppiness).toBe(0.65);
   expect((await debug(page)).renderer.render.triangles).toBeGreaterThan(10000);
   expect(errors).toEqual([]);

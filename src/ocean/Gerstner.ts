@@ -1,8 +1,8 @@
 import type { OceanValues } from "./OceanController";
 export const gerstnerWaves = [
-  { x: 0.86, z: 0.51, length: 3.6, weight: 0.57, speed: 0.72 },
-  { x: -0.45, z: 0.893, length: 2.15, weight: 0.29, speed: 0.98 },
-  { x: 0.25, z: -0.968, length: 1.2, weight: 0.14, speed: 1.2 },
+  { x: 0.86, z: 0.51, length: 3.6, weight: 0.57, speed: 1.1 },
+  { x: -0.45, z: 0.893, length: 2.15, weight: 0.29, speed: 1.45 },
+  { x: 0.25, z: -0.968, length: 1.2, weight: 0.14, speed: 1.9 },
 ] as const;
 const smooth = (a: number, b: number, v: number) => {
   const t = Math.max(0, Math.min(1, (v - a) / (b - a)));
@@ -29,7 +29,8 @@ export function sampleGerstner(
       a = v.waveHeight * w.weight,
       theta = k * (nx * x + nz * z) - phase * w.speed;
     dy += a * Math.sin(theta) * shore;
-    const q = v.choppiness * a * Math.cos(theta) * shore * edge;
+    const q =
+      v.choppiness * Math.min(a, 0.2 / k) * Math.cos(theta) * shore * edge;
     dx += nx * q;
     dz += nz * q;
   }
@@ -41,7 +42,7 @@ vec3 gerstnerDisplacement(vec2 p){
  float shore=smoothstep(0.,.85,uHalfSize.y-p.y);
  float edge=smoothstep(0.,.38,min(uHalfSize.x-abs(p.x),uHalfSize.y-abs(p.y)));
  vec3 d=vec3(0.);
- ${gerstnerWaves.map((w) => `{vec2 dir=normalize(vec2(${w.x},${w.z}));float k=6.2831853/(${w.length}*uWaveLength);float a=uWaveHeight*${w.weight};float t=k*dot(dir,p)-uTime*${w.speed};d.y+=a*sin(t)*shore;d.xz+=dir*(uChoppiness*a*cos(t)*shore*edge);}`).join("\n")}
+ ${gerstnerWaves.map((w) => `{vec2 dir=normalize(vec2(${w.x},${w.z}));float k=6.2831853/(${w.length}*uWaveLength);float a=uWaveHeight*${w.weight};float t=k*dot(dir,p)-uTime*${w.speed};d.y+=a*sin(t)*shore;d.xz+=dir*(uChoppiness*min(a,.2/k)*cos(t)*shore*edge);}`).join("\n")}
  return d;
 }
 vec3 gerstnerNormal(vec2 p){vec2 e=vec2(.02,0.);vec3 dx=vec3(.04,0.,0.)+gerstnerDisplacement(p+e)-gerstnerDisplacement(p-e);vec3 dz=vec3(0.,0.,.04)+gerstnerDisplacement(p+e.yx)-gerstnerDisplacement(p-e.yx);return normalize(cross(dz,dx));}

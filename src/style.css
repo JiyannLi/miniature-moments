@@ -581,7 +581,7 @@ dialog b {
   right: 28px;
   bottom: 112px;
   width: 354px;
-  max-height: calc(100dvh - 140px);
+  max-height: calc(100dvh - 200px);
   overflow: auto;
   padding: 22px;
   border: 1px solid #a0b8c133;

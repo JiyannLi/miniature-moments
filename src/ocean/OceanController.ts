@@ -2,7 +2,7 @@ export type WeatherCondition = "sunny" | "cloudy" | "rain";
 export type OceanPreset = "calm" | "breeze" | "windy";
 export type OceanMode = "auto" | "manual";
 export const oceanRanges = {
-  waveHeight: [0.015, 0.12],
+  waveHeight: [0.02, 0.24],
   waveSpeed: [0.2, 1.6],
   waveLength: [0.65, 1.8],
   choppiness: [0, 0.65],
@@ -10,12 +10,15 @@ export const oceanRanges = {
   transparency: [0.25, 0.85],
   glassiness: [0, 1],
   reflection: [0, 0.8],
+  interactionStrength: [0, 2],
+  ripplePropagation: [0.45, 2.2],
+  rippleDamping: [0.25, 3.5],
 } as const;
 export type OceanKey = keyof typeof oceanRanges;
 export type OceanValues = Record<OceanKey, number>;
 export const oceanPresets: Record<OceanPreset, OceanValues> = {
   calm: {
-    waveHeight: 0.027,
+    waveHeight: 0.055,
     waveSpeed: 0.42,
     waveLength: 1.35,
     choppiness: 0.12,
@@ -23,9 +26,12 @@ export const oceanPresets: Record<OceanPreset, OceanValues> = {
     transparency: 0.72,
     glassiness: 0.72,
     reflection: 0.28,
+    interactionStrength: 0.8,
+    ripplePropagation: 1.05,
+    rippleDamping: 1.5,
   },
   breeze: {
-    waveHeight: 0.067,
+    waveHeight: 0.135,
     waveSpeed: 0.8,
     waveLength: 1.12,
     choppiness: 0.32,
@@ -33,9 +39,12 @@ export const oceanPresets: Record<OceanPreset, OceanValues> = {
     transparency: 0.58,
     glassiness: 0.56,
     reflection: 0.4,
+    interactionStrength: 1,
+    ripplePropagation: 1.25,
+    rippleDamping: 1.1,
   },
   windy: {
-    waveHeight: 0.105,
+    waveHeight: 0.205,
     waveSpeed: 1.2,
     waveLength: 0.9,
     choppiness: 0.56,
@@ -43,6 +52,9 @@ export const oceanPresets: Record<OceanPreset, OceanValues> = {
     transparency: 0.46,
     glassiness: 0.4,
     reflection: 0.48,
+    interactionStrength: 1.2,
+    ripplePropagation: 1.6,
+    rippleDamping: 0.85,
   },
 };
 export class OceanController {

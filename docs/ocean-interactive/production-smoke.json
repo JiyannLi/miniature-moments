@@ -1,0 +1,18 @@
+{
+  "production": "dist via vite preview :4173",
+  "coastInjections": 34,
+  "renderer": {
+    "memory": {
+      "geometries": 256,
+      "textures": 11
+    },
+    "render": {
+      "frame": 33,
+      "calls": 256,
+      "triangles": 29480,
+      "points": 0,
+      "lines": 72
+    }
+  },
+  "errors": []
+}

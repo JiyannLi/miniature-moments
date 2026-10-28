@@ -170,3 +170,23 @@ test("边坡高度函数与实际三角面一致，支撑物不会按错误曲�
       assert.ok(Math.abs(hit.point.y - coastTerrainHeight(x, z)) < 1e-5);
     }
 });
+
+test("过轨步行面和缓坡有闭合实体支撑，底面回接地基而非空悬", () => {
+  const root = coastalRoadbed(material, material, material);
+  root.updateMatrixWorld(true);
+  const ray = new T.Raycaster();
+  for (const x of [-2.39, -2.18, -1.8, 1.8, 2.18, 2.39])
+    for (const z of [
+      -0.85, -0.8, -0.75, -0.65, -0.37, 0, 0.37, 0.65, 0.75, 0.8, 0.85,
+    ]) {
+      const walk = root.children.filter((o) => o.name === "supported-sidewalk");
+      ray.set(new T.Vector3(x, 2, z), new T.Vector3(0, -1, 0));
+      const top = ray.intersectObjects(walk)[0];
+      ray.set(new T.Vector3(x, 0, z), new T.Vector3(0, 1, 0));
+      const bottom = ray.intersectObjects(walk)[0];
+      assert.ok(top && bottom, `open pedestrian foundation at ${x},${z}`);
+      assert.ok(Math.abs(bottom.point.y - 0.24) < 1e-6);
+      assert.ok(top.point.y - bottom.point.y > 0.3);
+      assert.ok(Math.abs(top.point.y - coastSidewalkHeight(z)) < 0.0005);
+    }
+});
